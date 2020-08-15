@@ -1,4 +1,5 @@
 # 文件的读写
+
 write.table()
 read.table()
 write.table函数语法：
@@ -673,7 +674,7 @@ cor(mtcars)
 library(corrgram)
 corrgram(mtcars, order=T, lower.panel=panel.shade, upper.panel=panel.pie, text.panel=panel.txt, main="Corrgram")
 ```
-下三角中,斜线从左下指向右上为正相关, 色彩越深饱和度越高,越相关,接近0的色彩基本无色,本图使用了主成分法对行列重新排序
+下三角中,斜线从左下指向右上为正相关, 色彩越深饱和度越高,越相关,接近0的色彩基本无色,本图使用了主成分法对行列重新排序  
 
 上三角同样,顺时针为正相关
 
@@ -698,6 +699,7 @@ panel值如下
 对于多个类别型变量,其中嵌套矩形面积正比于单元格频率,该频率即是多维列联表的频率,颜色或阴影表示拟合模型残差值
 有自带的mosaicplot(),但推荐使用使用vcd包中的mosaic()
 对泰坦尼克数据集
+
 ```{r}
 ftable(Titanic)
 ```
