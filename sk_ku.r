@@ -1,5 +1,5 @@
 #计算偏度峰度
-myfun <- function(x,na.omit=FALSE){
+sk_ku <- function(x,na.omit=FALSE){
   if(na.omit)
     x <- x[!is.na(x)]
   m <- mean(x)

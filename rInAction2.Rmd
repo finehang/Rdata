@@ -1,5 +1,4 @@
 # 文件的读写
-
 write.table()
 read.table()
 write.table函数语法：
@@ -674,7 +673,7 @@ cor(mtcars)
 library(corrgram)
 corrgram(mtcars, order=T, lower.panel=panel.shade, upper.panel=panel.pie, text.panel=panel.txt, main="Corrgram")
 ```
-下三角中,斜线从左下指向右上为正相关, 色彩越深饱和度越高,越相关,接近0的色彩基本无色,本图使用了主成分法对行列重新排序  
+下三角中,斜线从左下指向右上为正相关, 色彩越深饱和度越高,越相关,接近0的色彩基本无色,本图使用了主成分法对行列重新排序
 
 上三角同样,顺时针为正相关
 
@@ -684,51 +683,13 @@ order=T时,将使用主成分法对变量重新排序,使二元变量关系模�
 panel选项用于彻底非主对角线上下方元素的类型,分为lower.panel=panel.shade, upper.panel=panel.pie
 text.panel和diag.panel选项控制主对角线元素类型
 panel值如下
-
-|    位置    |   面板选项    |          描述          |
-| :--------: | :-----------: | :--------------------: |
-| 非主对角线 |   panel.pie   |   饼图表示相关性大小   |
-|            |  panel.shade  |   阴影表示相关性大小   |
-|            | panel.ellipse |      绘制置信椭圆      |
-|            |   panel.pts   | 平滑拟合曲线绘制散点图 |
-|  主对角线  | panel.minmax  |   输出变量最大最小值   |
-|            |   panel.txt   |      输出变量名字      |
-
-### 马赛克图
-
-对于多个类别型变量,其中嵌套矩形面积正比于单元格频率,该频率即是多维列联表的频率,颜色或阴影表示拟合模型残差值
-有自带的mosaicplot(),但推荐使用使用vcd包中的mosaic()
-对泰坦尼克数据集
-
-```{r}
-ftable(Titanic)
-```
-使用mosaic()
-```{r}
-library(vcd)
-mosaic(Titanic, shade=T, legend=T)
-```
-或使用更详细的控制
-```{r}
-library(vcd)
-mosaic(~Class+Sex+Age+Survived, data=Titanic, shade=T, legend=T)
-```
-```{r}
-library(boot)
-rsp <- function(formula, data, indices){
-  d <- data[indices,]
-  fit<-lm(formula,data=d)
-  return(summary(fit)$r.square)
-}
-results<-boot(data=mtcars, statistic=rsp, R=1000, formula=mpg~wt+disp)
-results
-plot(results)
-```
-
-
-
-
-
+|位置|面板选项|描述|
+|主对角线|panel.pie||
+||panel.shade||
+||panel.ellipse||
+||panel.pts||
+|主对角线|panel.minmax||
+||panel.txt||
 
 
 
