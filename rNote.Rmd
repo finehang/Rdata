@@ -201,7 +201,7 @@ repeat{
 }
 ```
 
-### 函数
+## 函数
 myfun <- function(par1, par2,...){
   ....
 }
@@ -328,7 +328,195 @@ y <- dchisq(x, 5)
 plot(x , y, type = "l")
 ```
 
+### 单变量统计函数
+```{r}
+x <- c(1:10, 100)
+mean(x)
+mean(x, trim = 0.1) # 均值, 因为均值易受极值影响,用trim去除首尾0.1部分的数值
+median(x) # 中位数
+quantile(x, probs = c(.6, .9)) # 分位数
+var(x) # 方差
+sd(x) # 标准差
+table(x) # 频数表
+```
+```{r}
+# 加权平均数
+weight <- 1:100
+x <- rnorm(100)
+weighted.mean(x,weight)
+```
 
+```{r}
+str(airquality) # 查看数据集结构
+summary(airquality)
+```
+
+几何平均数
+```{r}
+x <- c(.045, .021, .255, .019)
+xq1 <- prod(x)^(1/(length(x)))
+xq2 <- exp(mean(log(x)))
+xq1 == xq2
+```
+
+```{r}
+x <- rnorm(100,50,6)
+y <- rnorm(200,150,8)
+z <- c(x,y)
+plot(density(z))
+abline(v=mean(z), col=3, lw =3)
+```
+
+### 双变量函数
+```{r}
+# 协方差
+cov(airquality[c(-5,-6)], use = 'pairwise.complete.obs') #配对删除
+cov(airquality[c(-5,-6)], use = 'complete.obs')　# 行删除
+# 相关系数
+cor(airquality[c(-5,-6)], use = 'pairwise.complete.obs') #配对删除
+cor(airquality[c(-5,-6)], use = 'complete.obs')　# 行删除
+```
+### 统计量的可视化
+
+```{r}
+# 散点图
+plot(airquality$Ozone) # 只传入一个则以索引为X轴
+plot(airquality$Ozone, airquality$Wind)
+# 箱线图
+boxplot(airquality$Temp, main="box")
+boxplot(airquality$Temp, horizontal = T) # 横向
+# 最上端距箱子长度为1.5倍的IQR, IQR为箱子的高度
+# 直方图
+hist(airquality$Temp)
+hist(airquality$Temp, breaks = 30) # 30个直方
+hist(airquality$Temp, breaks = 30, prob=T) # 纵轴为比率
+lines(density(airquality$Temp), col=3, lwd=3) # 密度曲线
+
+# 密度曲线
+plot(density(airquality$Temp))
+# 柱状图,   对于分类变量使用
+barplot(table(airquality$Month))
+barplot(table(airquality$Month), horiz = T)
+# 饼图
+pie(table(airquality$Month))
+# 多变量图集
+plot(airquality[c(-5,-6)])
+pairs(airquality[c(-5,-6)])
+```
+
+### 数据的组织和整理
+#### 输入和输出
+基本输入
+输出readline(), edit(), fix()
+```{r}
+x <- readline("input something")
+```
+```{r}
+myDataFrame <- data.frame(name=character(0), age=numeric(0), height=numeric(0))
+myDataFrame <- edit(myDataFrame) # 修改后应重新赋值
+fix(myDataFrame) # 修改后立即生效
+```
+输出print(), cat()
+```{r}
+x <- rnorm(10)
+print(x, digits = 4) # 可控制精度,会显示每行首个元素的索引, 行末没有换行符
+print("hello"); print("world")
+cat("hello"); cat("world", "\n") # 手动添加换行符
+cat(format(x, digits = 4), "\n") # 更紧凑, 行末自动添加换行符, 使用format进行格式调整
+cat("test message", file = "c:/users/fanhang/Desktop/test.txt") # 可将数据输出到文件
+```
+输出重定向sink()将原本输出到屏幕的数据重定向到文本中去
+```{r}
+# 输出重定向
+sink("c:/users/fanhang/Desktop/test.txt")
+cat(rnorm(100))
+sink() # 以sink标志结束
+```
+
+#### 模拟数据集与自带数据集
+模拟数据应符合特定分布
+练习线性回归
+y=ax+b+e
+x~N(0,2)
+e~N(0,1)
+a=2, b=.5
+```{r}
+set.seed(10)
+x <- rnorm(100,0,2)
+e <- rnorm(100)
+a <- 2
+b <- .5
+y <- a*x+b+e
+plot(x,y)
+```
+自带数据集
+保存在datasets中
+```{r}
+data(package="datasets")
+data(package=.packages(all.available = T)) # 查看所有可用数据集
+```
+#### 文件数据源
+```{r}
+getwd() # 获得当前工作目录
+setwd("c:/users/fanhang/Desktop/Rdata") # 设定工作目录
+x <- rnorm(10)
+y <- rnorm(10)
+z <- rnorm(10)
+save(x,y,z,file = "c:/users/fanhang/Desktop/xyz.Rdata")
+l <- load("c:/users/fanhang/Desktop/xyz.Rdata") # 含有此文件中变量的名字
+l
+```
+
+结构化的文件
+文本:
+read.table(), 默认第一行不为列名 header=F, 分隔符为空格sep=""
+允许设置注释行标志,comment.char="@"
+read.csv(), 默认第一行为列名 header=T, 分隔符为逗号sep=",", 也允许注释行
+read.delim() 可以从剪切板读取, read.delim("clipboard", header=F)
+
+write.table(x, "c:/users/fanhang/Desktop/test.txt", sep=" ")
+
+Excel:四种方法
+保存为csv文件
+剪切板+read.delim()
+xlsx扩展包
+rodbc数据源
+
+SPSS文件:自带的foreign::read.spss(), 
+library(foreign)
+cars <- read.spss("c:/users/fanhang/Desktop/car.sav")
+或安装Hmisc包
+Hmisc::spss.get()
+library(Hmisc)
+cars <- spss.get("c:/users/fanhang/Desktop/car.sav", use.value.labels = T) # 使用SPSS自带的数据标签
+
+关系型数据库mysql
+RMySQL包
+```{r}
+library(RMySQL)
+conn <- dbConnect(MySQL(), dbname = "50", username="root", password="288682", host="localhost", port=3306)
+dbListTables(conn) # 查看有哪些表
+dbListFields(conn, "course") # 查看有哪些字段
+summary(MySQL(), verbose=T) # 查看信息
+student <- dbReadTable(conn, "student")
+temp <- data.frame(s_id="09", s_name="AA", s_birth="1990-01-01", s_sex="boy")
+# dbWriteTable(conn, "student", temp, append=T)
+res <- dbGetQuery(conn, "select * from student where s_id<05") # 使用SQL语句
+res <- dbSendQuery(conn, "show databases") # 象数据库发送数据库指令命令(不是SQL指令)
+dl <- fetch(res)
+dl
+dbDisconnect(conn) # 断开连接
+```
+
+ODBC方式 开放数据库连接,中继连接
+```{r}
+library(RODBC)
+conn <- odbcConnect("LocalMySQL") # 已选定"50"数据库
+sqlTables(conn) # 查看表
+student <-  sqlFetch(conn, "student")
+student <- sqlQuery(conn, "select * from student where s_id<05") # 使用sql语句
+odbcClose(conn) # 断开连接
+```
 
 
 
