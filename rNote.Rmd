@@ -514,8 +514,299 @@ library(RODBC)
 conn <- odbcConnect("LocalMySQL") # 已选定"50"数据库
 sqlTables(conn) # 查看表
 student <-  sqlFetch(conn, "student")
+student
 student <- sqlQuery(conn, "select * from student where s_id<05") # 使用sql语句
 odbcClose(conn) # 断开连接
+```
+
+#### 数据操作
+##### 日期时间,字符串的处理
+数据集成
+数据转换
+
+Data日期类,只有日期,没有时间
+POSIXct 日期时间类, 精确到秒,内部用数字表示, 空间小,索引慢
+POSIXlt 日期时间类, 精确到秒,内部用列表表示, 空间大,索引快
+函数
+Sys.date(), date(), difftime(), ISOdate(), ISOdatetime()
+```{r}
+(date()) # 日期和时间
+(Sys.Date()) # 只有日期
+```
+##### 字符转日期
+```{r}
+mydate <- as.Date("2020-08-18")
+class(mydate)
+as.character(mydate)
+```
+
+as.date()支持向量化运算
+```{r}
+birDay <- c("01/05/1986", "06/05/1989")
+days <- as.Date(birDay, "%m/%d/%Y")
+days
+```
+也可使用format()格式化函数
+```{r}
+date <- Sys.Date()
+format(date, format = "%m-%d-%Y")
+```
+
+```{r}
+as.numeric(Sys.Date()) # 从1970年至今过的天数
+as.numeric(as.Date("1970-01-01"))
+```
+日期可以相减
+```{r}
+dateBir <- as.Date("1994-06-17")
+dateNow <- Sys.Date()
+dayLong <- dateNow - dateBir
+dayLong
+# 或使用diff()函数
+weekLong <- difftime(Sys.Date(), as.Date("1994-06-17"), units = "weeks")
+weekLong
+```
+年月日拼接
+```{r}
+date <- as.Date(ISOdate(2020,05,09))# POSIXct类型
+class(date)
+# 支持向量拼接
+years <- c(2019, 2020,2021)
+months <- c(05, 07, 09)
+days <- c(5,7,9)
+allDays <- as.Date(ISOdate(years,months,days))
+allDays
+```
+POSIXlt类型
+```{r}
+p <- as.POSIXlt(Sys.Date())
+p$year + 1900 # 默认为距离1900的年数
+p$mon + 1 # 默认为距离1月的月数
+p$mday
+p$hour
+p$min
+p$sec
+```
+#### 字符串
+nchar(), length() 取长度
+paste(), outer() 拼接
+substr(), strsplit() 拆分
+Sub(), gsub() 修改
+grep(), regexpr(), grepexpr() 查找
+
+cat()与print()
+cat遇到不可见字符按其本意输出
+print则直接输出
+```{r}
+a <- "hello\rwold\n"
+a
+cat(a) # 先输出hello,遇到\r回车符,移到行首,输出wold,覆盖hello
+print(a)
+nchar(a)
+```
+```{r}
+nchar(a) # 得到字符长度
+length(a) # 得到向量元素个数
+```
+拼接
+```{r}
+board <- paste("b", 1:5, sep = "-")
+board
+mm <- paste("mm", 1:3, sep = "-")
+mm
+outer(board, mm, paste, sep = ":") # 向量的外积, 笛卡尔积,默认为做乘法,此处自定义为paste函数
+```
+提取子串
+```{r}
+board
+substr(board, 3, 3) # 提取字符第3个起,第3个止的元素,全闭区间,此处为向量化操作
+```
+拆分
+```{r}
+strsplit(board, "-", fixed = T) # fixed = T 不使用正则表达式
+```
+替换修改
+```{r}
+sub("-", ".", board, fixed = T)
+sub("m", "p", mm) # 只替换第一个匹配字符
+gsub("m", "p", mm)# 替换所有匹配字符,g为全局之意
+```
+查找
+```{r}
+mm <- c(mm, "mm4")
+mm
+grep("-", mm) # 返回T或F, 对于向量,返回查到的元素的索引
+regexpr("-", mm) # 返回第一个匹配项
+gregexpr("-", mm) # 返回所有匹配项
+```
+
+### 数据预处理
+数据集成
+数据转换
+数据清洗
+数据约简
+
+#### 数据集成
+merge(), pylr::join()
+与cbind(), rbind()不同的是,
+merge()可以按字段匹配合并,相当于内连接和外连接
+```{r}
+cus <- data.frame(Id=c(1:6), state=c(rep("北京", 3), rep("上海", 3)))
+ol <- data.frame(Id=c(1,4,6,7), Pro=c("IPhone", "Mi", "Vivo", "Huawei"))
+a <- merge(cus, ol, by = ("Id")) # 内连接
+a
+b <- merge(cus, ol, by = ("Id"), all=T) # 全连接
+b
+c <- merge(cus, ol, by = ("Id"), all.x=T) # 左连接
+c
+d <- merge(cus, ol, by = ("Id"), all.y=T) # 右连接
+d
+# 对于列名相同的两个数据框, 会进行union连接, 去除重复值
+```
+
+#### 数据转换
+构造属性
+规范化,极差化,标准化
+离散化 区间化
+改善分布
+排序
+```{r}
+air <- airquality[order(airquality$Temp),]
+head(air, 5)
+```
+添加变量
+直接$新变量赋值即可
+```{r}
+quantile(air$Temp, probs=c(0,.3,.6,1))
+```
+```{r}
+air$isHot <- ifelse(air$Temp>80,T,F)
+head(air,5)
+tail(air,5)
+```
+使用within
+```{r}
+air <- within(air,{
+  feel <- NA
+  feel[Temp>=80]="Hot"
+  feel[Temp>=70&Temp<80]="Warm"
+  feel[Temp<70]="Cold"
+})
+head(air, 5)
+tail(air, 5)
+# 转为因子
+air$feel <- factor(air$feel, levels = c("Cold", "Warm", "Hot"), ordered = T)
+```
+
+#### 数据规范化
+中心化 减均值,之后均值为0
+归一化 减均值后除以标准差
+scale(x, center=T, scale=T) 默认先中心化,在归一化
+只中心化则设scale=F
+```{r}
+test <- data.frame(center=scale(air$Temp, scale=F), scale=scale(air$Temp))
+test
+```
+连续变量化离散型
+使用cut()
+```{r}
+air <- within(air, {tZone=cut(Temp, breaks = quantile(Temp, probs = c(0,.3,.6,.8,1)), include.lowest = T)})
+air
+```
+使用Hmisc::cut2()
+```{r}
+library(Hmisc)
+air <- within(air,{tZone2=cut2(Temp, g=4)}) # 直接分为四组
+air
+```
+### 缺失值
+#### 发现缺失值
+NA, not available缺失值
+NaN, not a number无意义值
+Inf 正无穷
+-Inf 负无穷
+
+is.na() 字段层面识别缺失值
+complete.cases() 记录层面识别缺失值
+
+VIM包, mice()包用于处理缺失值
+```{r}
+library(VIM)
+summary(sleep)
+is.na(sleep$Sleep)
+is.na(NaN) # 也是缺失值,Inf不是
+is.infinite(Inf)
+sleep$Sleep[!is.na(sleep$Sleep)]
+complete.cases(sleep) # 对sleep所有的观测, 有缺失值就返回F(不完整), 可作为行索引
+sleep[complete.cases(sleep),]
+```
+直接对布尔值加减
+```{r}
+sum(is.na(sleep$Sleep)) # 缺失值计数
+mean(is.na(sleep$Sleep)) # 缺失值均值,其实就是缺失值比例
+# 同理可用于complete.cases()
+```
+
+#### 缺失值模式
+完全随机缺失 MCAR  与其他变量和自己都没有关系, 可看作是从一个更大的样本抽样而来, 可直接删去
+
+随机缺失 MAR  和其他变量有关系, 和自己没关系,  一旦删去,可能对其他变量也有影响
+
+非随机缺失 NMAR  与其他有关,与自己也有关
+
+```{r}
+library(mice)
+library(VIM)
+md.pattern(sleep) # 字段下面,1表示无缺失值,0表示有缺失值, 第一列表示缺失模式,42行无缺失,9行这样的确实,3行这样的缺失,等等... 最后一列表示本行有多少个缺失值, 最后一行表示本列缺失值的个数
+aggr(sleep, number=T, prop=F)
+matrixplot(sleep)
+marginplot(sleep[,c("Dream", "Sleep")])
+```
+
+#### 处理缺失值
+删除与填补
+缺失值占比少于5%, 并符合随机缺失, 即可删除
+
+大多函数都提供na.rm=T 参数直接对缺失值做删除处理
+
+行删除
+na.omit
+配对删除, 函数处理到具体的某个变量时,再删除这个缺失值
+cor(data, use = "pairwise.complete.obs")
+
+填补
+简单随机填补
+均值填补
+回归填补
+```{r}
+sub.index <- which(is.na(sleep$Sleep)==T) # 找出缺失值的索引
+sleepClean <- sleep[-sub.index,] # 取出sleep完整行
+sleepNa <- sleep[sub.index, ] # 取出sleep缺失行
+# 从sleepClean随机抽样放到sleepNa
+sleepNa$Sleep <- sample(sleepClean$Sleep, nrow(sleepNa), replace = T) # 从sleepClean$Sleep中可放回的抽nrow(sleepNa)个数据
+sleepNa
+# 均值填补
+sleepNa$Sleep <- mean(sleepClean$Sleep)
+sleepNa
+# 回归填充
+sleeplm <- lm(Sleep~Gest+Exp, data = sleep) # 从原始数据得到回归模型
+# 使用Gest+Exp两个变量因为其相关系数较高
+cor(sleep, use = "pairwise.complete.obs")
+library(corrgram)
+corrgram(cor(sleep, use = "pairwise.complete.obs"), lower.panel = panel.conf, upper.panel = panel.pie)
+# sleep相关最强的的有NonD和Dream, 但sleep缺失时NonD也缺失,不可用故用Exp
+sleepNa$Sleep <- round(predict(sleeplm, sleepNa), 2) # 使用predict(), 在sleepNa数据中用上面的回归模型进行预测,并填补
+sleepNa
+```
+
+
+```{python engine.path="C:/Program Files/Python/Python38/python.exe"}
+print("hello")
+a=3
+b=4
+a,b=b,a
+a
+b
 ```
 
 
