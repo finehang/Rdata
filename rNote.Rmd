@@ -1,6 +1,8 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ## 数据结构
@@ -22,7 +24,8 @@ bool 布尔型
 ### 向量
 ```{r}
 a <- c(10:20)
-(seq(from=1, to=10,  length.out=10, along.with=a)) # by=1
+a
+(seq(from=1, to=10,  along.with=a)) # by=1
 (seq(from=1, to=10,  length.out=20)) # by=1
 ```
 取子集
@@ -47,6 +50,7 @@ blood <- c("a", "a", "b", "ab", "ab", "o", "o")
 ### 矩阵
 ```{r}
 ma <- matrix(rnorm(16,0,1), nrow = 4, byrow = T)
+ma
 rownames(ma) <- c(1,2,3,4)
 colnames(ma) <- c(5,6,7,8)
 mb <- matrix(rnorm(16,0,2), nrow = 4)
@@ -140,15 +144,16 @@ y1
 
  if...else...结构
 
- ifelse(b, u, v)函数, 支持向量化计算
+ ifelse(b, u, v)函数, 支持向量化计算 第一参数为测试条件,T输出第二参数,F输出第三参数
 
 ```{r}
 brand <- paste(c("Brand"), 1:9, sep = "")
 pName <- paste("DELL", 1:9, sep = " ")
 mem <- rep(c("1G", "2G", "4G"), 3)
 feq <- rep(c("2.2G", "2.8G", "3.2G"), each=3)
-price <- rep(c("1000", "2000", "5000"), 3)
+price <- rep(c(1000, 2000, 5000), 3)
 PC <- data.frame(brand, pName, mem, feq, price)
+PC
 
 # 高于3000打上Expensive标签,低于为Cheap标签
 for(i in 1:nrow(PC)){
@@ -214,7 +219,7 @@ R 中函数是一类对象,如同向量列表等一样可以随时创建, 而在
 page()函数, 在编辑器中查看
 ```{r}
 mean
-page(mean)
+# page(mean) # 以文档形式打开查看
 ```
 函数必须要返回值,不写return(), 会将最后一行作为返回值
 ```{r}
@@ -234,7 +239,7 @@ x
 
 
 ```{r}
-mystat <- function(x,na.omit=F){
+mystat <- function(x,na.omit=F){ # 默认不忽略NA值
   if(na.omit){
     x <- x[!is.na(x)] # 取出不为NA的
   }
@@ -266,6 +271,7 @@ apply(x, margin, FUN)
 x为数据框, margin为指定的维度,1为行维度,2为列维度, FUN为指定的对行或列操作的函数
 ```{r}
 dataTest <- data.frame(pv=rnorm(10), uv=rnorm(10), ip=runif(10))
+dataTest
 rownames(dataTest) <- paste("NO.",1:10,sep = "")
 # apply(dataTest, 1, FUN=mean) # 行维度
 apply(dataTest, 2, FUN=mean) # 列维度
@@ -299,8 +305,8 @@ q 依据此分布的概率密度函数进行分位点操作
 ```{r}
 rnorm(10) # 默认生成均值0,方差1的标准正态分布,10个随机数
 dnorm(0) # 默认为标准正态分布,得到概率密度=0的概率
-pnorm(1.65) # 默认为标准正态分布,得到<0的累计概率, 即1.65分位点的概率是95%
-qnorm(0.95) # 与q相反,根据累计概率,得到x的值,分位点, 即95%分位点是1.65
+pnorm(1.65) # 默认为标准正态分布,得到x<1.65的累计概率, 即1.65分位点的概率是95%
+qnorm(0.95) # 与q相反,根据累计概率,得到x的值,分位点, 即95%累积概率的分位点位置是1.65
 ```
 
 ### pretty()函数
@@ -311,8 +317,8 @@ pretty(0,100,1000) # 从0到100,生成1000个等步长的向量
 x <- pretty(0:50,100)
 y <- dchisq(x, 5) # 概率密度分布
 z <- pchisq(x,5) # 累积概率分布
-plot(x , y, type = "l")
-plot(x , z, type = "l")
+plot(x , y, type = "l", col="red")
+plot(x , z, type = "l", col="red")
 ```
 ```{r}
 x <- pretty(-3:3,500)
@@ -330,7 +336,7 @@ plot(x , y, type = "l")
 
 ### 单变量统计函数
 ```{r}
-x <- c(1:10, 100)
+x <- c(-10,1:10, 100)
 mean(x)
 mean(x, trim = 0.1) # 均值, 因为均值易受极值影响,用trim去除首尾0.1部分的数值
 median(x) # 中位数
@@ -354,7 +360,7 @@ summary(airquality)
 几何平均数
 ```{r}
 x <- c(.045, .021, .255, .019)
-xq1 <- prod(x)^(1/(length(x)))
+xq1 <- prod(x)^(1/(length(x))) # 连乘之后开n次方根
 xq2 <- exp(mean(log(x)))
 xq1 == xq2
 ```
@@ -363,8 +369,8 @@ xq1 == xq2
 x <- rnorm(100,50,6)
 y <- rnorm(200,150,8)
 z <- c(x,y)
-plot(density(z))
-abline(v=mean(z), col=3, lw =3)
+plot(density(z)) # 密度曲线
+abline(v=mean(z), col=3, lw =3) # 添加参考线
 ```
 
 ### 双变量函数
@@ -385,7 +391,7 @@ plot(airquality$Ozone, airquality$Wind)
 # 箱线图
 boxplot(airquality$Temp, main="box")
 boxplot(airquality$Temp, horizontal = T) # 横向
-# 最上端距箱子长度为1.5倍的IQR, IQR为箱子的高度
+# 最上端距箱子长度为1.5倍的IQR, IQR为箱子的高度, 上四分位减下四分位
 # 直方图
 hist(airquality$Temp)
 hist(airquality$Temp, breaks = 30) # 30个直方
@@ -419,7 +425,7 @@ fix(myDataFrame) # 修改后立即生效
 输出print(), cat()
 ```{r}
 x <- rnorm(10)
-print(x, digits = 4) # 可控制精度,会显示每行首个元素的索引, 行末没有换行符
+print(x, digits = 4) # 可控制精度,会显示每行首个元素的索引, 行末有换行符
 print("hello"); print("world")
 cat("hello"); cat("world", "\n") # 手动添加换行符
 cat(format(x, digits = 4), "\n") # 更紧凑, 行末自动添加换行符, 使用format进行格式调整
@@ -502,7 +508,8 @@ student <- dbReadTable(conn, "student")
 temp <- data.frame(s_id="09", s_name="AA", s_birth="1990-01-01", s_sex="boy")
 # dbWriteTable(conn, "student", temp, append=T)
 res <- dbGetQuery(conn, "select * from student where s_id<05") # 使用SQL语句
-res <- dbSendQuery(conn, "show databases") # 象数据库发送数据库指令命令(不是SQL指令)
+res
+res <- dbSendQuery(conn, "show databases") # 向数据库发送数据库指令命令(不是SQL指令)
 dl <- fetch(res)
 dl
 dbDisconnect(conn) # 断开连接
@@ -696,18 +703,19 @@ head(air, 5)
 tail(air, 5)
 # 转为因子
 air$feel <- factor(air$feel, levels = c("Cold", "Warm", "Hot"), ordered = T)
+class(air$feel)
 ```
 
 #### 数据规范化
 中心化 减均值,之后均值为0
 归一化 减均值后除以标准差
-scale(x, center=T, scale=T) 默认先中心化,在归一化
+scale(x, center=T, scale=T) 默认先中心化,再归一化
 只中心化则设scale=F
 ```{r}
 test <- data.frame(center=scale(air$Temp, scale=F), scale=scale(air$Temp))
 test
 ```
-连续变量化离散型
+连续变量化为离散型
 使用cut()
 ```{r}
 air <- within(air, {tZone=cut(Temp, breaks = quantile(Temp, probs = c(0,.3,.6,.8,1)), include.lowest = T)})
@@ -757,7 +765,7 @@ mean(is.na(sleep$Sleep)) # 缺失值均值,其实就是缺失值比例
 ```{r}
 library(mice)
 library(VIM)
-md.pattern(sleep) # 字段下面,1表示无缺失值,0表示有缺失值, 第一列表示缺失模式,42行无缺失,9行这样的确实,3行这样的缺失,等等... 最后一列表示本行有多少个缺失值, 最后一行表示本列缺失值的个数
+md.pattern(sleep) # 字段下面,1表示无缺失值,0表示有缺失值, 第一列表示缺失模式,42行无缺失,9行这样的缺失,3行这样的缺失,等等... 最后一列表示本行有多少个缺失值, 最后一行表示本列缺失值的个数
 aggr(sleep, number=T, prop=F)
 matrixplot(sleep)
 marginplot(sleep[,c("Dream", "Sleep")])
