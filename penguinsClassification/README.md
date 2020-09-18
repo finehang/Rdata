@@ -1,6 +1,6 @@
 # Note:
 
-penguins_classification.R 为企鹅种类预测代码
+penguins_classification.R 为企鹅种类预测代码  
 monte_carlo_method.R 为蒙特卡罗方法预测圆周率代码
 
 # 蒙特卡洛模拟
