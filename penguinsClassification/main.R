@@ -1,28 +1,38 @@
-penguins <- read_csv("./demo_data/penguins.csv")
-penguins %>% summarise(across(everything(),~sum(is.na(.))))
-penguins %>% map_df(~mean(is.na(.)))
-penguins <- penguins %>% clean_names() %>% drop_na()
+library(tidyverse)
+library(tidymodels)
+
+# 数据清洗
+penguins <- read_csv("./penguins.csv")
+penguins %>% summarise(across(everything(),~sum(is.na(.)))) # 统计缺失值
+# penguins %>% map_df(~mean(is.na(.)))
+penguins <- penguins %>% janitor::clean_names() %>% drop_na() # 统一列名
 
 penguins %>% ggplot(mapping=aes(x=bill_length_mm, y=bill_depth_mm, color=species))+
-  geom_point()
+  geom_point() +
+  labs(title="三种企鹅吻长度和深度的分布",
+  x="Length",
+  y="Depth")
 
 split <- penguins %>%
   mutate(species=as_factor(species)) %>%
   # mutate(species=fct_lump(species,1)) %>% 
-  initial_split()
+  initial_split() # 切分数据集，按3：1比例
 
 trainData=training(split)
 testData=testing(split)
 
 # 逻辑回归模型
-model_logistic <- parsnip::logistic_reg() %>% set_engine("glm") %>% set_mode("classification") %>% 
-fit(species~bill_length_mm+bill_depth_mm, data=trainData)
+model_logistic <- parsnip::logistic_reg() %>% # 建立并拟合逻辑回归模型
+  set_engine("glm") %>% 
+  set_mode("classification") %>% 
+  fit(species~bill_length_mm+bill_depth_mm, data=trainData)
 
-bind_cols(
+result_log <- bind_cols(
 predict(model_logistic, new_data = testData, type = "class"),
 predict(model_logistic, new_data = testData, type = "prob"),
 testData) %>% 
-  count(.pred_class, species)
+  count(.pred_class, species) %>%
+  rename(预测值=.pred_class, 真实值=species)
 
 # 最近邻模型
 model_neighbor <- parsnip::nearest_neighbor(neighbors = 10) %>%
@@ -30,9 +40,10 @@ model_neighbor <- parsnip::nearest_neighbor(neighbors = 10) %>%
   set_mode("classification") %>% 
   fit(species ~ bill_length_mm+bill_depth_mm, data = trainData)
 
-predict(model_neighbor, new_data=testData) %>% 
+result_neighbor <- predict(model_neighbor, new_data=testData) %>% 
   bind_cols(testData) %>% 
-  count(.pred_class, species)
+  count(.pred_class, species) %>%
+  rename(预测值=.pred_class, 真实值=species)
 
 # 多项式回归模型
 model_multinom_reg <- parsnip::multinom_reg() %>% 
@@ -40,9 +51,10 @@ model_multinom_reg <- parsnip::multinom_reg() %>%
   set_mode("classification") %>% 
   fit(species~bill_length_mm + bill_depth_mm, data = trainData)
 
-predict(model_multinom_reg, new_data = testData) %>% 
+result_multinom <- predict(model_multinom_reg, new_data = testData) %>% 
   bind_cols(testData) %>% 
-  count(.pred_class, species)
+  count(.pred_class, species) %>%
+  rename(预测值=.pred_class, 真实值=species)
 
 # 决策树模型
 model_decision <- parsnip::decision_tree() %>% 
@@ -50,9 +62,10 @@ model_decision <- parsnip::decision_tree() %>%
   set_mode("classification") %>% 
   fit(species ~bill_length_mm + bill_depth_mm, data=trainData)
 
-predict(model_decision, new_data = testData) %>% 
+result_decision <- predict(model_decision, new_data = testData) %>% 
   bind_cols(testData) %>% 
-  count(.pred_class, species)
+  count(.pred_class, species) %>%
+  rename(预测值=.pred_class, 真实值=species)
 
 # 随机森林模型
 model_randomForest <- parsnip::rand_forest() %>% 
@@ -60,6 +73,12 @@ model_randomForest <- parsnip::rand_forest() %>%
   set_mode("classification") %>% 
   fit(species ~bill_length_mm + bill_depth_mm, data=trainData)
 
-predict(model_randomForest, new_data = testData) %>% 
+result_randomForest <- predict(model_randomForest, new_data = testData) %>% 
   bind_cols(testData) %>% 
-  count(.pred_class, species)
+  count(.pred_class, species) %>%
+  rename(预测值=.pred_class, 真实值=species)
+
+result <- list("result_log"=result_log, "result_neighbor"=result_neighbor, 
+              "result_multinom"=result_multinom, "result_decision"=result_decision, 
+              "result_randomForest"=result_randomForest)
+result
