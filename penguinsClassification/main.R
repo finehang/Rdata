@@ -4,8 +4,8 @@ library(tidymodels)
 # 数据清洗
 penguins <- read_csv("./penguins.csv")
 penguins %>% summarise(across(everything(),~sum(is.na(.)))) # 统计缺失值
-# penguins %>% map_df(~mean(is.na(.)))
-penguins <- penguins %>% janitor::clean_names() %>% drop_na() # 统一列名
+penguins %>% map_df(~mean(is.na(.)))
+penguins <- penguins %>% janitor::clean_names() %>% select(-sex) %>% drop_na() # 统一列名
 
 penguins %>% ggplot(mapping=aes(x=bill_length_mm, y=bill_depth_mm, color=species))+
   geom_point() +
@@ -28,7 +28,7 @@ model_logistic <- parsnip::logistic_reg() %>% # 建立模型并按训练集进�
   fit(species~bill_length_mm+bill_depth_mm, data=trainData)
 
 result_log <- bind_cols( # 使用模型对测试集预测
-# predict(model_logistic, new_data = testData, type = "class"),
+predict(model_logistic, new_data = testData, type = "class"),
 predict(model_logistic, new_data = testData, type = "prob"),
 testData) %>% 
   count(.pred_class, species) %>%

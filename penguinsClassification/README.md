@@ -1,4 +1,5 @@
-# 数据
+# 数据来源
+
 数据操作基于tidyverse  
 模型构建基于tidymodels
 
@@ -22,58 +23,83 @@ data(package = 'palmerpenguins')
 |sex               |factor  |性别
 |year              |integer |记录年份
 
-# 预测结果
+# 数据清洗
+
+性别缺失值较多, 且本例不需性别字段, 直接删去字段
+```{r}
+species island bill_length_mm bill_depth_mm flipper_length_mm body_mass_g    sex  year
+    <dbl>  <dbl>          <dbl>         <dbl>             <dbl>       <dbl>  <dbl> <dbl>
+1       0      0        0.00581       0.00581           0.00581     0.00581 0.0320     0
+```
+
+余下数据缺失值占比较小, 均不超过0.5%, 故直接删去
 
 ```{r}
-r$> result
+species island bill_length_mm bill_depth_mm flipper_length_mm body_mass_g  year
+    <dbl>  <dbl>          <dbl>         <dbl>             <dbl>       <dbl> <dbl>
+1       0      0        0.00581       0.00581           0.00581     0.00581     0
+```
+
+所余有效数据共342例, 按0.75比率划分数据集, 得到训练集257例, 测试集85例
+
+# 结果
+
+```{r}
+> result
 $result_log
-# A tibble: 4 x 3
+# A tibble: 5 x 3
   预测值 真实值        n
   <fct>  <fct>     <int>
-1 Adelie Adelie       39
-2 Adelie Chinstrap     4
-3 Gentoo Gentoo       21
-4 Gentoo Chinstrap    19
+1 Adelie Adelie       35
+2 Adelie Chinstrap     3
+3 Gentoo Adelie        1
+4 Gentoo Gentoo       26
+5 Gentoo Chinstrap    20
 
 $result_neighbor
-# A tibble: 4 x 3
+# A tibble: 7 x 3
   预测值    真实值        n
   <fct>     <fct>     <int>
-1 Adelie    Adelie       39
+1 Adelie    Adelie       35
 2 Adelie    Chinstrap     4
-3 Gentoo    Gentoo       21
-4 Chinstrap Chinstrap    19
+3 Gentoo    Gentoo       25
+4 Gentoo    Chinstrap     1
+5 Chinstrap Adelie        1
+6 Chinstrap Gentoo        1
+7 Chinstrap Chinstrap    18
 
 $result_multinom
-# A tibble: 5 x 3
+# A tibble: 6 x 3
   预测值    真实值        n
   <fct>     <fct>     <int>
-1 Adelie    Adelie       39
-2 Adelie    Chinstrap     4
-3 Gentoo    Gentoo       21
+1 Adelie    Adelie       35
+2 Adelie    Chinstrap     3
+3 Gentoo    Gentoo       26
 4 Gentoo    Chinstrap     1
-5 Chinstrap Chinstrap    18
+5 Chinstrap Adelie        1
+6 Chinstrap Chinstrap    19
 
 $result_decision
-# A tibble: 8 x 3
+# A tibble: 7 x 3
   预测值    真实值        n
   <fct>     <fct>     <int>
-1 Adelie    Adelie       38
-2 Adelie    Gentoo        5
-3 Adelie    Chinstrap     7
-4 Gentoo    Gentoo       15
-5 Gentoo    Chinstrap     1
-6 Chinstrap Adelie        1
-7 Chinstrap Gentoo        1
-8 Chinstrap Chinstrap    15
+1 Adelie    Adelie       29
+2 Adelie    Chinstrap     2
+3 Gentoo    Adelie        3
+4 Gentoo    Gentoo       23
+5 Chinstrap Adelie        4
+6 Chinstrap Gentoo        3
+7 Chinstrap Chinstrap    21
 
 $result_randomForest
-# A tibble: 5 x 3
+# A tibble: 7 x 3
   预测值    真实值        n
   <fct>     <fct>     <int>
-1 Adelie    Adelie       38
-2 Adelie    Chinstrap     4
-3 Gentoo    Gentoo       21
-4 Chinstrap Adelie        1
-5 Chinstrap Chinstrap    19
+1 Adelie    Adelie       33
+2 Adelie    Chinstrap     2
+3 Gentoo    Gentoo       25
+4 Gentoo    Chinstrap     1
+5 Chinstrap Adelie        3
+6 Chinstrap Gentoo        1
+7 Chinstrap Chinstrap    20
 ```
