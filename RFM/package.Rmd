@@ -1,0 +1,706 @@
+---
+title: "package"
+author: "finehang"
+date: "2020/9/8"
+output:
+  pdf_document: 
+    latex_engine: xelatex
+    extra_dependencies:
+      ctex: UTF8
+    number_sections: yes
+    df_print: kable
+    toc: yes
+classoptions: "hyperref, 12pt, a4paper"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+library(tidyverse)
+library(stringr)
+```
+
+
+# stringr
+
+```{r}
+library(stringr)
+```
+
+## 字符串拼接
+```{r}
+# sep 对字符串操作
+print(str_c("a", "b", "c", sep="-"))
+# collapse 对向量操作
+print(str_c(c("A", "B", "C"), c("1", "2", "3"), collapse = "_"))
+# 没有collapse参数, 不进行向量之间的拼接
+print(str_c(c("A", "B", "C"), c("1", "2", "3")))
+```
+## 字符串截去空格
+```{r}
+# string: 字符串，字符串向量。
+# side: 过滤方式，both两边都过滤，left左边过滤，right右边过滤
+# str_trim("  string  ", side = c("both", "left", "right"))
+str_trim("  string  ", side = "both")
+str_trim("  string  ", side = "left")
+str_trim("  string  ", side = "right")
+```
+
+## 字符串填充
+```{r}
+# str_pad(string, width, side = c("left", "right", "both"), pad = " ")
+# string: 字符串，字符串向量。
+# width: 字符串填充后的长度
+# side: 填充方向，both
+str_pad(string = "Congratulations!", width=30, side = "both", pad = "-")
+```
+
+## 字符串复制duplicate
+```{r}
+str_dup(string = c("A", "a", "1"), times=c(1,3,4))
+```
+
+## 字符串输出格式
+```{r}
+# str_wrap(string, width = 80, indent = 0, exdent = 0)
+# string: 字符串，字符串向量。
+# width: 设置一行所占的宽度。
+# indent: 段落首行的缩进值
+# exdent: 段落非首行的缩进值
+text = "R语言作为统计学一门语言，一直在小众领域闪耀着光芒。直到大数据的爆发，R语言变成了一门炙手可热的数据分析的利器。随着越来越多的工程背景的人的加入，R语言的社区在迅速扩大成长。现在已不仅仅是统计领域，教育，银行，电商，互联网….都在使用R语言。"
+cat(str_wrap(string = text, width=50, indent =4, exdent=0))
+```
+
+## 字符串截取与赋值
+```{r}
+text <-  "I am finehang"
+str_sub(string = text, start = 6, end = -1) # end不写, 默认到最后
+str_sub(string = text, start = c(1, 6), end = c(1, -1))
+str_sub(text, start = c(1, 4), end = c(6, 13))
+# start 与 end 对应位置相匹配为各个区间
+
+# 将6到最后的替换为"fanhang"
+str_sub(string = text, 6, -1) <- "fanhang"
+text
+```
+
+## 字符串计数
+```{r}
+text <- "I am finehang"
+# 对匹配的字符进行计数
+str_count(string = text, pattern = "a")
+# 或直接对全部计数
+str_count(string = text)
+
+# 对字符串中的'.'字符计数，由于.是正则表达式的匹配符，直接判断计数的结果是不对的。
+t <- c("a.", "b...", ".", "ad", NA)
+str_count(t, pattern = "\\.")
+# 或
+str_count(t, pattern = fixed("."))
+```
+
+## 取长度
+```{r}
+t <- c("aaaa", "aasedrv", "a", NA)
+str_length(t)
+```
+
+## 字符串排序与取排序索引
+```{r}
+# x: 字符串，字符串向量。
+# decreasing: 排序方向。
+# na_last:NA值的存放位置，一共3个值，TRUE放到最后，FALSE放到最前，NA过滤处理
+# locale:按哪种语言习惯排序
+text <- c("hello", "world", "I", NA, NA, "am", "finehang")
+str_sort(text, decreasing = F, na_last = NA, locale = "en")
+tt <- c("你", "好", "樊", "航")
+str_sort(tt, decreasing = F, na_last = F, locale = "zh")
+```
+
+## 字符串分割
+```{r}
+date <- "2020-09-08 14:34:59"
+str_split(string = date, pattern = " ") # 返回列表
+str_split_fixed(string = date, pattern = " ", n = 2) # 返回矩阵
+str_split(date, pattern=" ",simplify = T) # 返回矩阵
+```
+
+## 提取单词
+```{r}
+text <- c("hello I am finehang", "hello little world")
+word(text,sep=fixed(" "), 2, 3) # 提取单词, 并取第2到第3个
+```
+
+## 匹配字符串
+```{r}
+str <- c("aaab", "ccc", "abca", "ddd")
+str_subset(string = str, pattern = "a") # 全文匹配
+str_subset(string = str, pattern = "^a") # 开头匹配
+str_subset(string = str, pattern = "a$") # 结尾匹配
+```
+
+## 是否匹配字符
+```{r}
+str <- c("aaab", "ccc", "abca", "ddd")
+str_detect(string = str, pattern = "a") # 全文匹配
+str_detect(string = str, pattern = "^a") # 开头匹配
+str_detect(string = str, pattern = "a$") # 结尾匹配
+```
+
+## 提取匹配组
+```{r}
+#  将匹配到的字符提取出来
+str <- c("aaab", "ddd", 111,456)
+str_match(str, pattern = "[0-9]*")
+str_match_all(str, pattern = "[0-9]*") # 以矩阵返回
+```
+
+## 字符串替换
+```{r}
+# str_replace(string, pattern, replacement)
+# string: 字符串，字符串向量。
+# pattern: 匹配字符。
+# replacement: 用于替换的字符
+str <- c("aaab", "ccc", "abca", "ddd", 111,456)
+str_replace(str, pattern = "ab", replacement = "00") # 只替换第一个
+str
+str_replace_all(str, pattern = "ab", replacement = "00")
+```
+
+## NA替换为字符串
+```{r}
+str <- c(NA, NA, "sss", "ffr", "s", NA, NA)
+str_replace_na(str, replacement = "NotAvailable")
+```
+
+## 搜索匹配项位置
+```{r}
+str <- c("aaab", "cdfaaab", "ccaaac", "abca", "ddd", 111,456)
+str_locate(str, pattern = "aaa")
+str_locate_all(str, pattern = "[ab]") # 以矩阵返回
+```
+
+## 提取匹配模式
+```{r}
+str <- c("aaab", "cdfaaab", "ccaaac", "abca", "ddd", 111,456)
+str_extract(str, pattern="aa")
+str_extract_all(str, pattern="aa", simplify = T) # simplify = T 返回矩阵
+```
+
+## 字符编码转换
+```{r}
+str <- "\u5317\u4eac"
+str_conv(str, "utf-8")
+```
+
+## 大小写
+```{r}
+str <- "i am FINEhang"
+str_to_upper(str)
+str_to_lower(str)
+str_to_title(str)
+```
+
+## 字符串展开
+```{r}
+str <- c("aaab", "cdfaaab", "ccaaac", "abca", "ddd", 111,456)
+str_flatten((str))
+```
+
+```{r}
+str <- c("aaab", "aaab", "aaab", "cdfaaab", "ccaaac", "abca", "ddd", 111,456)
+str_remove(str, "aaab")
+str_remove_all(str, "aaab")
+```
+
+# tibble()
+```{r}
+library(tidyverse)
+```
+
+转换为tibble
+```{r}
+irisTi <- as_tibble(iris)
+irisTi
+```
+
+```{r}
+test <- tibble(
+a = lubridate::now() + runif(10) * 86400,
+b = lubridate::today() + runif(10) * 30,
+c = 1:10,
+d = runif(10),
+e = sample(letters, 10, replace = TRUE)
+)
+test
+```
+
+```{r}
+test$a
+test[[1]]
+
+# 使用管道
+test %>% .$a
+test %>% .[[1]]
+```
+
+
+readr函数用法
+readr的目标是提供一种快速、友好的方法来读取矩形数据（如csv、tsv和fwf）。它的设计目的是灵活地解析许多类型的数据。
+readr包的功能有
+1 readr：read_csv(); read_tsv(); read_delim(); read_fwf(); read_table(); 
+2 read_log();
+3 readxl：read_xls(); read_xlsx();
+4 haven：打开SAS 、SPSS、Stata等外部数据
+```{r}
+# read_
+```
+
+# dplyr函数用法
+dplyr基本包含了我们整理数据的所有功能
+1 mutate（）使用现有变量的函数创建新变量
+2 select（）根据变量的名称选择变量
+3 filter（）根据条件过滤数据
+4 summary（）概述数据的统计特征
+5 arrange（）根据某一列的数据对行排序
+6 group_by（）对数据分组
+
+##构建新变量
+如果只想保留新变量，可以使用 transmute() 函数
+```{r}
+# 根据现有变量
+irisTi %>% mutate(sArea = Sepal.Length * Sepal.Width, pArea = Petal.Length * Petal.Width)
+```
+
+## 选择列
+```{r}
+ # num_range("x", 1:3)：匹配 x1、 x2 和 x3
+irisTi %>% select(Species, everything())
+irisTi %>% select(!c(Sepal.Length, Sepal.Width))
+irisTi %>% select(-Species)
+irisTi %>% select(SL = Sepal.Length)
+irisTi %>% rename(SL = Sepal.Length)
+```
+## 筛选列
+```{r}
+irisTi %>% filter(Species == "setosa")
+irisTi %>% filter(Sepal.Length >= 5)
+irisTi %>% filter(Sepal.Length >= 5 & Species == "setosa")
+
+```
+
+## 分组与summarise
+Useful functions
+Center: mean(), median()
+Spread: sd(), IQR(), mad()
+Range: min(), max(), quantile()
+Position: first(), last(), nth()
+Count: n(), n_distinct()
+Logical: any(), all()
+```{r}
+groupS <- irisTi %>% group_by(Species)
+groupS %>% summarise(meanS = mean(Sepal.Length), sdS = sd(Sepal.Length))
+```
+
+```{r}
+by_cyl <- mtcars %>% group_by(cyl)
+
+by_cyl %>% summarise(
+  disp = mean(disp),
+  hp = mean(hp)
+)
+mtcars %>% summarise(
+  disp = mean(disp),
+  hp = mean(hp)
+)
+```
+## 按指定列排序
+```{r}
+irisTi %>% arrange(Sepal.Length, Sepal.Width)
+```
+
+# ggplot2
+
+- 数据data与映射mapping
+- 标度scale
+- 几何对象geometric
+- 统计变换statistics
+- 坐标系统coordinate
+- 图层layer
+- 分面facet
+- 主题 (theme)
+- 存储和输出 (output)
+
+
+aesthetic attribute
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping=aes(x = displ, y = hwy, color=class, size=cty, alpha=cyl, shape=class)) + # 在aes外进行设置时, 是指定特定的值, color="blue"
+  xlab("Displ") +
+  ylab("Hwy")
+```
+
+```{r}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy),
+             shape =21, colour = "blue", fill = "grey",size = 5, stroke = 1)
+```
+
+## 分面facet
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping=aes(x=displ, y=hwy, color=class)) +
+  facet_wrap(~class, nrow=2) # 应为离散型
+```
+
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping=aes(x=displ, y=hwy, color=class)) +
+  facet_grid(drv ~ cyl) # 通过两个变量进行分面
+```
+
+## 几何对象
+```{r}
+ggplot(data = mpg) +
+  geom_smooth(mapping = aes(x = displ, y = hwy, linetype = drv))
+
+ggplot(data = mpg) +
+  geom_smooth(mapping=aes(x=displ, y=hwy, color=drv))
+
+# 添加多个几何对象
+ggplot(data=mpg) +
+  geom_point(mapping=aes(x=displ, y=hwy, color=drv)) +
+  geom_smooth(mapping=aes(x=displ, y=hwy, color=drv), method="lm")
+
+# ggplot中的mapping是全局有效, 各geom的mapping只对局部当前图层有效,并会覆盖全局
+```
+
+
+## 统计变换
+```{r}
+# bar默认变换为stat=count()
+ggplot(data=diamonds) +
+  geom_bar(mapping=aes(x=cut, fill=cut), color="black")
+```
+
+```{r}
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, y = ..prop.., group = 0))
+
+
+ggplot(data = diamonds) +
+  stat_summary(mapping = aes(x = cut, y = depth),fun.ymin = min, fun.ymax = max, fun.y = median)
+
+d <- ggplot(diamonds, aes(cut))
+d + geom_bar()
+d + stat_summary(aes(y = price), fun = "mean", geom = "bar")
+
+# position = fill  identity  dodge
+ggplot(data=diamonds, mapping=aes(x=cut)) +
+  geom_bar(mapping=aes(fill=clarity), color="black", position="fill", alpha=.5)
+
+ggplot(data=diamonds, mapping=aes(x=cut)) +
+  geom_bar(mapping=aes(fill=clarity), color="black", position="dodge", alpha=.5)
+
+ggplot(data=diamonds, mapping=aes(x=cut)) +
+  geom_bar(mapping=aes(fill=clarity), color="black", position="identity", alpha=.5)
+```
+
+## 坐标系
+```{r}
+ggplot(mpg,aes(x = class, y = hwy)) +
+  geom_boxplot() +
+  coord_flip() # 交换XY轴
+```
+
+```{r}
+gg <- ggplot(data=diamonds, mapping=aes(x = cut, fill=cut))
+gg + geom_bar() + coord_polar()  + theme(aspect.ratio = 1)
+```
+
+## 比较浮点数
+是否相等时，不能使用 ==，而应该使用 near()
+```{r}
+1/49 *49 == 1
+near(1/49 *49 , 1)
+```
+
+```{r}
+select(flights, -(year:day))
+rename(flights, tail_num = tailnum)
+```
+
+## 对数函数
+log()、 log2() 和 log10()
+在处理取值范围横跨多个数量级的数据时，对数是特别有用的一种转换方式。它还可以将乘法转换成加法，其他条件相同的情况下，我推荐使用 log2() 函数，因为很容易对其进行解释：对数标度的数值增加 1 个单位，意味着初始数值加倍；减少 1 个单位，则意味着初始数值减半。
+
+## 累加和滚动聚合
+```{r}
+x <- c(1:100)
+cumsum(x)
+cummin(x)
+cummax(x)
+cumprod(x)
+cummean(x)
+```
+
+## 排秩
+```{r}
+x <- rnorm(100)
+min_rank(x)
+```
+
+
+```{r}
+mean(x, trim=.2)
+```
+
+
+
+```{r}
+not_cancelled <- flights %>%
+  filter(!is.na(dep_delay), !is.na(arr_delay))
+
+delay <- not_cancelled %>% group_by(tailnum) %>% summarise(delay = mean(arr_delay), n=n()) # n_distinct() 去重计数
+
+ggplot(delay, mapping=aes(x=delay))+
+  geom_freqpoly(binwidth = 10)+
+  geom_point(mapping=aes(x=n, y=delay), alpha=.1)
+```
+
+## 定位度量
+first(x)、 nth(x, 2) 和 last(x)
+这几个函数的作用与 x[1]、 x[2] 和 x[length(x)] 相同
+
+## 计数
+```{r}
+not_cancelled %>%
+  count(dest)
+
+not_cancelled %>%
+  count(tailnum, wt = distance) # 加权求和
+
+# 等效于
+not_cancelled %>%
+  group_by(tailnum) %>%
+  summarise(sum = sum(distance)) %>%
+  arrange(tailnum)
+```
+## 多变量分组
+使用多个变量进行分组时，每次的摘要统计会用掉一个分组变量
+```{r}
+gro <- flights %>%
+  group_by(year, month, day)
+
+pre_day <- gro %>% summarise(flights=n())
+pre_mon <- pre_day %>% summarise(flights = sum(flights))
+pre_year <- pre_mon %>% summarise(flights = sum(flights))
+pre_day
+pre_mon
+pre_year
+```
+
+```{r}
+m <- matrix(1:9, nrow = 3)
+m
+diag(m)
+m[upper.tri(m)]
+m[upper.tri(m, diag = FALSE)]
+```
+
+## df外连接
+
+```{r}
+df1 <-  data.frame(name=c("AA", "DD", "CD"), score=c(77,88,99))
+df2 <-  data.frame(name=c("AA", "DD", "CD"), age = c(22,21,24))
+df <- left_join(df1, df2, by="name")
+df
+```
+
+## 正则匹配
+()内为匹配条件
+(?=pattern) 要求此位置的后面必须匹配表达式pattern
+(?!pattern) 要求此位置的后面不能匹配表达式pattern
+(?<=pattern) 要求此位置的前面必须匹配表达式pattern
+(?<!pattern) 要求此位置的前面不能匹配表达式pattern
+向文本末端方向为前
+```{r}
+win <- c("Windows2000", "Windows", "Windows3.1")
+str_view(win, pattern = "Windows(?=95|98|NT|2000)")
+
+win <- c("2000Windows", "Windows", "3.1Windows")
+str_view(win, "(?<!95|98|NT|2000)Windows")
+```
+```{r}
+tb <- tibble(x = c("I我", "love爱", "you你"))
+tb %>% extract(x, c("en", "zh"), "([a-zA-Z]+)([^a-zA-Z]+)", remove=F)
+```
+
+## 因子处理
+```{r}
+fa <- factor(c("A", "AB", "B", "O", "AB", "A", "A", "A", "A"))
+# 重新调整水平
+fa %>% fct_relevel(c("O", "AB"))
+fa %>% fct_relevel("AB", after=Inf)
+# 以首次出现的顺序为水平顺序 
+fa %>% fct_inorder()
+# 按照其他变量的中位数的升序排序
+fa %>% fct_reorder(c(1:9), .fun = median)  
+```
+fct_reorder()可以让x的顺序按照x中每个分类变量对应y值的中位数升序排序，具体为
+a对应的y值c(2, 2) 中位数是median(c(2, 2)) = 2
+b对应的y值c(1, 5) 中位数是median(c(1, 5)) = 3
+c对应的y值c(0, 3) 中位数是median(c(0, 3)) = 1.5
+
+## 层级逆序
+```{r}
+fa <- factor(c("A", "AB", "B", "O", "AB", "A", "A", "A", "A"))
+fa %>% fct_rev()
+```
+
+## 函数式编程
+```{r}
+set.seed(123)
+exams <- list(
+  student1 = round(runif(10, 50, 100)),
+  student2 = round(runif(10, 50, 100)),
+  student3 = round(runif(10, 50, 100)),
+  student4 = round(runif(10, 50, 100)),
+  student5 = round(runif(10, 50, 100))
+)
+map_dbl(exams, mean)
+map_df(exams, mean)
+```
+
+|函数|返回|
+|:-:|:-:|
+|map()|list|
+|map_chr()|character vector|
+|map_dbl|double vector(numeric)|
+|map_int()|integer vector|
+|map_lgl()|logical vector|
+|map_df()|data frame|
+
+```{r}
+center <- function(x){
+  x-mean(x)
+}
+
+exams %>% map_df(center)
+
+map_df(exams, ~.x - mean(.x)) # .x指代map的data数据
+map_df(exams, ~. - mean(.)) # . 也指代data...
+```
+
+## 用于建模
+```{r}
+mtcars %>%
+  group_by(cyl) %>%
+  nest() %>%
+  mutate(model = purrr::map(data, ~ lm(mpg ~ wt, data = .))) %>%
+  mutate(result = purrr::map(model, ~ broom::tidy(.))) %>%
+  unnest(result)
+```
+
+
+```{r}
+exams %>% map(~ . - mean(.))
+
+exams %>% modify(~ . - mean(.))
+
+# Unlike map() and its variants which always return a fixed object type (list for map(), integer vector for map_int(), etc), the modify() family always returns the same type as the input object.
+```
+
+```{r}
+letters
+```
+
+## tibble
+
+```{r}
+df1 <- data.frame(a=c(1:10), b=rnorm(10))
+tibb <- as_tibble(df1)
+tibb %>% add_column(c=runif(10)) # 添加行
+tibb %>% add_row(a=0, b=1, .before = 2)
+```
+
+## lst
+创建一个list，具有tibble特性的list
+
+```{r}
+lst(n = 5, x = runif(n), y = TRUE)
+```
+## enframe
+enframe()将矢量快速创建tibble，，创建的tibble只有2列: name和value
+```{r}
+ef <- enframe(c(a=1, b=2, c=4))
+```
+
+## deframe
+deframe()可以看做是enframe() 的反操作，把tibble反向转成向量
+```{r}
+ef <- enframe(c(a=1, b=2, c=4))
+deframe((ef))
+```
+```{r}
+iii <- iris
+rownames(iii) <- str_c("a", 1:150)
+iii %>% mutate(rownames=rownames(iii)) %>% select(rownames, everything())
+# 或直接使用函数
+iii %>% rownames_to_column(var = "rownames")
+
+# 把行索引转换为单独的一列
+rowid_to_column(iii, var = "rowid")
+```
+## 修复列名
+.name_repair = "check_unique" 检查列名唯一性，但不做修复（默认）
+
+.name_repair = "minimal"， 不检查也不修复，维持现状
+
+.name_repair = "unique" 修复列名，使得列名唯一且不为空
+
+.name_repair = "universal" 修复列名，使得列名唯一且语法可读
+```{r}
+tibble(x=1, x=2, .name_repair = "universal")
+tibble(x=1, x=2, .name_repair =  ~ make.unique(., sep = "_"))
+tibble(x=1, x=2, .name_repair =  ~ make.names(., unique = TRUE))
+tibble("x  1"=1, "x-2"=2) %>% janitor::clean_names() # 一步到位
+```
+
+```{r}
+iris %>%
+  group_by(Species) %>%
+  nest()
+```
+
+
+```{r}
+library(tidyverse)
+library(gghighlight)
+library(cowplot)
+library(patchwork)
+library(ggforce)
+```
+

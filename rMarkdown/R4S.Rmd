@@ -1,0 +1,4053 @@
+---
+title: "package"
+author: "finehang"
+date: "2020/9/8"
+output:
+  pdf_document: 
+    latex_engine: xelatex
+    extra_dependencies:
+      ctex: UTF8
+    number_sections: yes
+    df_print: kable
+    toc: yes
+classoptions: "hyperref, 12pt, a4paper"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+library(tidyverse)
+library(stringr)
+library(nycflights13)
+```
+
+
+# stringr
+
+## 字符串拼接
+```{r}
+# sep 对字符串操作
+print(str_c("a", "b", "c", sep="-"))
+# collapse 对向量操作
+print(str_c(c("A", "B", "C"), c("1", "2", "3"), collapse = "_"))
+# 没有collapse参数, 不进行向量之间的拼接
+print(str_c(c("A", "B", "C"), c("1", "2", "3")))
+```
+## 字符串截去空格
+```{r}
+# string: 字符串，字符串向量。
+# side: 过滤方式，both两边都过滤，left左边过滤，right右边过滤
+# str_trim("  string  ", side = c("both", "left", "right"))
+str_trim("  string  ", side = "both")
+str_trim("  string  ", side = "left")
+str_trim("  string  ", side = "right")
+str_squish("   dd   vvff   d d   ")
+```
+
+## 字符串填充
+```{r}
+# str_pad(string, width, side = c("left", "right", "both"), pad = " ")
+# string: 字符串，字符串向量。
+# width: 字符串填充后的长度
+# side: 填充方向，both
+str_pad(string = "Congratulations!", width=30, side = "both", pad = "-")
+```
+
+## 字符串复制duplicate
+```{r}
+str_dup(string = c("A", "a", "1"), times=c(1,3,4))
+```
+
+## 字符串输出格式
+```{r}
+# str_wrap(string, width = 80, indent = 0, exdent = 0)
+# string: 字符串，字符串向量。
+# width: 设置一行所占的宽度。
+# indent: 段落首行的缩进值
+# exdent: 段落非首行的缩进值
+text = "R语言作为统计学一门语言，一直在小众领域闪耀着光芒。直到大数据的爆发，R语言变成了一门炙手可热的数据分析的利器。随着越来越多的工程背景的人的加入，R语言的社区在迅速扩大成长。现在已不仅仅是统计领域，教育，银行，电商，互联网….都在使用R语言。"
+cat(str_wrap(string = text, width=50, indent =4, exdent=0))
+```
+
+## 字符串截取与赋值
+```{r}
+text <-  "I am finehang"
+str_sub(string = text, start = 6, end = -1) # end不写, 默认到最后
+str_sub(string = text, start = c(1, 6), end = c(1, -1))
+str_sub(text, start = c(1, 4), end = c(6, 13))
+# start 与 end 对应位置相匹配为各个区间
+
+# 将6到最后的替换为"fanhang"
+str_sub(string = text, 6, -1) <- "fanhang"
+text
+```
+
+## 字符串计数
+```{r}
+text <- "I am finehang"
+# 对匹配的字符进行计数
+str_count(string = text, pattern = "a")
+# 或直接对全部计数
+str_count(string = text)
+
+# 对字符串中的'.'字符计数，由于.是正则表达式的匹配符，直接判断计数的结果是不对的。
+t <- c("a.", "b...", ".", "ad", NA)
+str_count(t, pattern = "\\.")
+# 或
+str_count(t, pattern = fixed("."))
+```
+
+## 取长度
+```{r}
+t <- c("aaaa", "aasedrv", "a", NA)
+str_length(t)
+```
+
+## 字符串排序与取排序索引
+```{r}
+# x: 字符串，字符串向量。
+# decreasing: 排序方向。
+# na_last:NA值的存放位置，一共3个值，TRUE放到最后，FALSE放到最前，NA过滤处理
+# locale:按哪种语言习惯排序
+text <- c("hello", "world", "I", NA, NA, "am", "finehang")
+str_sort(text, decreasing = F, na_last = NA, locale = "en")
+tt <- c("你", "好", "樊", NA,"航")
+str_sort(tt, decreasing = F, na_last = F, locale = "zh")
+```
+
+## 字符串分割
+```{r}
+date <- c("2020-09-08 14:34:59", "2020-09-09 14:34:59")
+str_split(string = date, pattern = " ") # 返回列表
+str_split_fixed(string = date, pattern = " ", n = 2) # 返回矩阵
+str_split(date, pattern=" ",simplify = T) # 返回矩阵
+
+tibble(str_split(date, pattern=" ",simplify = T)) %>% pull(1)
+```
+
+```{r}
+mtcars %>% pull(-1)
+mtcars %>% pull(1)
+mtcars %>% pull(cyl)
+```
+
+
+## 提取单词
+```{r}
+text <- c("hello I am finehang", "hello little world")
+word(text,sep=fixed(" "), 2, 3) # 提取单词, 并取第2到第3个
+```
+
+## 匹配字符串
+```{r}
+str <- c("aaab", "ccc", "bca", "ddd")
+str_subset(string = str, pattern = "a") # 全文匹配
+str_subset(string = str, pattern = "^a") # 开头匹配
+str_subset(string = str, pattern = "a$") # 结尾匹配
+```
+
+## 是否匹配字符
+```{r}
+str <- c("aaab", "ccc", "abca", "ddd")
+str_detect(string = str, pattern = "a") # 全文匹配
+str_detect(string = str, pattern = "^a") # 开头匹配
+str_detect(string = str, pattern = "a$") # 结尾匹配
+```
+
+## 提取匹配组
+```{r}
+#  将匹配到的字符提取出来
+str <- c("aaab", "ddd", 111,456)
+str_match(str, pattern = "[0-9]*")
+str_match_all(str, pattern = "[0-9]*") # 以矩阵返回
+```
+
+## 字符串替换
+```{r}
+# str_replace(string, pattern, replacement)
+# string: 字符串，字符串向量。
+# pattern: 匹配字符。
+# replacement: 用于替换的字符
+str <- c("aaab", "ccc", "abcaabab", "ddd", 111,456)
+str_replace(str, pattern = "ab", replacement = "00") # 只替换第一个
+str
+str_replace_all(str, pattern = "ab", replacement = "00")
+```
+
+## NA替换为字符串
+```{r}
+str <- c(NA, NA, "sss", "ffr", "s", NA, NA)
+str_replace_na(str, replacement = "NotAvailable")
+```
+
+## 搜索匹配项位置
+```{r}
+str <- c("aaab", "cdfaaab", "ccaaac", "abca", "ddd", 111,456)
+str_locate(str, pattern = "aaa")
+str_locate_all(str, pattern = "[ab]") # 以矩阵返回
+```
+
+## 提取匹配模式
+```{r}
+str <- c("aaab", "cdfaaab", "ccaaac", "abca", "ddd", 111,456)
+str_extract(str, pattern="aa")
+str_extract_all(str, pattern="aa", simplify = T) # simplify = T 返回矩阵
+```
+
+## 字符编码转换
+```{r}
+str <- "\u5317\u4eac"
+str_conv(str, "utf-8")
+```
+
+## 大小写
+```{r}
+str <- "i am FINEhang"
+str_to_upper(str)
+str_to_lower(str)
+str_to_title(str)
+```
+
+## 字符串展开
+```{r}
+str <- c("aaab", "cdfaaab", "ccaaac", "abca", "ddd", 111,456)
+str_flatten((str))
+```
+
+```{r}
+str <- c("aaabcaaabaaab", "cdfaaab", "ccaaac", "abca", "ddd", 111,456)
+str_remove(str, "aaab")
+str_remove_all(str, "aaab")
+```
+
+# tibble()
+```{r}
+# library(tidyverse)
+```
+
+转换为tibble
+```{r}
+irisTi <- as_tibble(iris)
+irisTi
+```
+
+```{r}
+test <- tibble(
+a = lubridate::now() + runif(10) * 86400,
+b = lubridate::today() + runif(10) * 30,
+c = 1:10,
+d = runif(10),
+e = sample(letters, 10, replace = TRUE)
+)
+test
+```
+```{r}
+tibble(x=c(0:1)) %>% ggplot(aes(x=x))+stat_function(fun="dnorm")
+```
+
+
+
+```{r}
+test$a
+test[[1]]
+
+# 使用管道
+test %>% .$a
+test %>% .[[1]]
+```
+
+
+readr函数用法
+readr的目标是提供一种快速、友好的方法来读取矩形数据（如csv、tsv和fwf）。它的设计目的是灵活地解析许多类型的数据。
+readr包的功能有
+1 readr：read_csv(); read_tsv(); read_delim(); read_fwf(); read_table(); 
+2 read_log();
+3 readxl：read_xls(); read_xlsx();
+4 haven：打开SAS 、SPSS、Stata等外部数据
+```{r}
+# read_
+```
+
+# dplyr函数用法
+dplyr基本包含了我们整理数据的所有功能
+1 mutate（）使用现有变量的函数创建新变量
+2 select（）根据变量的名称选择变量
+3 filter（）根据条件过滤数据
+4 summary（）概述数据的统计特征
+5 arrange（）根据某一列的数据对行排序
+6 group_by（）对数据分组
+
+##构建新变量
+如果只想保留新变量，可以使用 transmute() 函数
+```{r}
+# 根据现有变量
+irisTi %>% mutate(sArea = Sepal.Length * Sepal.Width, pArea = Petal.Length * Petal.Width) %>% select(sArea, pArea, everything())
+```
+
+## 选择列
+```{r}
+ # num_range("x", 1:3)：匹配 x1、 x2 和 x3
+irisTi %>% select(Species)
+irisTi %>% select(Species, everything())
+irisTi %>% select(!c(Sepal.Length, Sepal.Width))
+irisTi %>% select(-Species)
+irisTi %>% select(SL = Sepal.Length) # 选出并重命名
+irisTi %>% rename(SL = Sepal.Length) # 直接在表中重命名
+```
+## 筛选列
+```{r}
+irisTi %>% filter(Species == "setosa")
+irisTi %>% filter(Sepal.Length >= 5)
+irisTi %>% filter(Sepal.Length >= 5 & Species == "setosa")
+
+```
+
+## 分组与summarise
+Useful functions
+Center: mean(), median()
+Spread: sd(), IQR(), mad()
+Range: min(), max(), quantile()
+Position: first(), last(), nth()
+Count: n(), n_distinct()
+Logical: any(), all()
+```{r}
+groupS <- irisTi %>% group_by(Species)
+groupS %>% summarise(meanS = mean(Sepal.Length), sdS = sd(Sepal.Length), varS = var(Sepal.Length))
+```
+
+```{r}
+by_cyl <- mtcars %>% group_by(cyl)
+
+by_cyl %>% summarise(
+  disp = mean(disp),
+  hp = mean(hp)
+)
+mtcars %>% summarise(
+  disp = mean(disp),
+  hp = mean(hp)
+)
+```
+## 按指定列排序
+```{r}
+irisTi %>% arrange(Sepal.Length, Sepal.Width)
+```
+
+# ggplot2
+
+- 数据data与映射mapping
+- 标度scale
+- 几何对象geometric
+- 统计变换statistics
+- 坐标系统coordinate
+- 图层layer
+- 分面facet
+- 主题 (theme)
+- 存储和输出 (output)
+
+
+aesthetic attribute
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping=aes(x = displ, y = hwy, color=class, size=cty, alpha=cyl, shape=class)) + # 在aes外进行设置时, 是指定特定的值, color="blue"
+  xlab("Displ") +
+  ylab("Hwy")
+```
+
+```{r}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy),
+             shape =21, colour = "blue", fill = "grey",size = 5, stroke = 2)
+```
+
+## 分面facet
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping=aes(x=displ, y=hwy, color=class)) +
+  facet_wrap(~class, nrow=2) # 应为离散型
+```
+
+```{r}
+ggplot(data=mpg) +
+  geom_point(mapping=aes(x=displ, y=hwy, color=class)) +
+  facet_grid(drv ~ cyl) # 通过两个变量进行分面
+```
+
+## 几何对象
+```{r}
+ggplot(data = mpg) +
+  geom_smooth(mapping = aes(x = displ, y = hwy, linetype = drv))
+
+ggplot(data = mpg) +
+  geom_smooth(mapping=aes(x=displ, y=hwy, color=drv))
+
+# 添加多个几何对象
+ggplot(data=mpg) +
+  geom_point(mapping=aes(x=displ, y=hwy, color=drv)) +
+  geom_smooth(mapping=aes(x=displ, y=hwy, color=drv), method="lm")
+
+# ggplot中的mapping是全局有效, 各geom的mapping只对局部当前图层有效,并会覆盖全局
+```
+
+
+## 统计变换
+```{r}
+# bar默认变换为stat=count()
+ggplot(data=diamonds) +
+  geom_bar(mapping=aes(x=cut, fill=cut), color="black")
+```
+
+```{r}
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, y = ..prop.., group = 0))
+
+
+ggplot(data = diamonds) +
+  stat_summary(mapping = aes(x = cut, y = depth),fun.min = min, fun.max = max, fun = median)
+
+d <- ggplot(diamonds, aes(x=cut))
+d + geom_bar()
+d + stat_summary(aes(y = price), fun = "mean", geom = "bar")
+
+# position = fill  identity  dodge
+ggplot(data=diamonds, mapping=aes(x=cut)) +
+  geom_bar(mapping=aes(fill=clarity), color="black", position="fill", alpha=.5)
+
+ggplot(data=diamonds, mapping=aes(x=cut)) +
+  geom_bar(mapping=aes(fill=clarity), color="black", position="dodge", alpha=.5)
+
+ggplot(data=diamonds, mapping=aes(x=cut)) +
+  geom_bar(mapping=aes(fill=clarity), color="black", position="identity", alpha=.5)
+```
+
+## 坐标系
+```{r}
+ggplot(mpg,aes(x = class, y = hwy)) +
+  geom_boxplot() +
+  coord_flip() # 交换XY轴
+```
+
+```{r}
+gg <- ggplot(data=diamonds, mapping=aes(x = cut, fill=cut))
+gg + geom_bar() + coord_polar()  + theme(aspect.ratio = 1)
+```
+
+## 比较浮点数
+是否相等时，不能使用 ==，而应该使用 near()
+```{r}
+1/49 *49 == 1
+near(1/49 *49 , 1)
+```
+
+```{r}
+select(flights, -(year:day))
+rename(flights, tail_num = tailnum)
+```
+
+## 对数函数
+log()、 log2() 和 log10()
+在处理取值范围横跨多个数量级的数据时，对数是特别有用的一种转换方式。它还可以将乘法转换成加法，其他条件相同的情况下，我推荐使用 log2() 函数，因为很容易对其进行解释：对数标度的数值增加 1 个单位，意味着初始数值加倍；减少 1 个单位，则意味着初始数值减半。
+
+## 累加和滚动聚合
+```{r}
+x <- c(1:100)
+cumsum(x)
+cummin(x)
+cummax(x)
+cumprod(x)
+cummean(x)
+```
+
+## 排秩
+```{r}
+x <- rnorm(100)
+min_rank(x)
+```
+
+
+```{r}
+mean(x, trim=.2)
+```
+
+
+
+```{r}
+not_cancelled <- flights %>%
+  filter(!is.na(dep_delay), !is.na(arr_delay))
+
+delay <- not_cancelled %>% group_by(tailnum) %>% summarise(delay = mean(arr_delay), n=n()) # n_distinct() 去重计数
+
+ggplot(delay, mapping=aes(x=delay))+
+  geom_freqpoly(binwidth = 10)+
+  geom_point(mapping=aes(x=n, y=delay), alpha=.1)
+```
+
+## 定位度量
+first(x)、 nth(x, 2) 和 last(x)
+这几个函数的作用与 x[1]、 x[2] 和 x[length(x)] 相同
+
+## 计数
+```{r}
+not_cancelled %>%
+  count(dest)
+
+not_cancelled %>%
+  count(tailnum, wt = distance) # 加权求和
+
+# 等效于
+not_cancelled %>%
+  group_by(tailnum) %>%
+  summarise(sum = sum(distance)) %>%
+  arrange(tailnum)
+```
+## 多变量分组
+使用多个变量进行分组时，每次的摘要统计会用掉一个分组变量
+```{r}
+gro <- flights %>%
+  group_by(year, month, day)
+
+pre_day <- gro %>% summarise(flights=n())
+pre_mon <- pre_day %>% summarise(flights = sum(flights))
+pre_year <- pre_mon %>% summarise(flights = sum(flights))
+pre_day
+pre_mon
+pre_year
+```
+
+```{r}
+m <- matrix(1:9, nrow = 3)
+m
+diag(m)
+m[upper.tri(m)]
+m[upper.tri(m, diag = FALSE)]
+m[lower.tri(m)]
+```
+
+x^1^
+
+## df外连接
+join系列函数相当于保持对应关系的横向拼接，left_join、right_join、inner_join、full_join都比较好理解。
+semi_join仅保留x中与y可以联结的部分，不保留y的数据。anti_join丢弃x中可以与y联结的部分，也不保留y的数据。
+多表连接时
+将每个新数据存为list中，然后统一用bind_rows或reduce(union)，则可以加快运行速度。
+
+```{r}
+df1 <-  data.frame(name=c("AA", "DD", "CD"), score=c(77,88,99))
+df2 <-  data.frame(name=c("AA", "DD", "CD"), age = c(22,21,24))
+df <- left_join(df1, df2, by="name")
+df
+```
+
+## 正则匹配
+()内为匹配条件
+(?=pattern) 要求此位置的后面必须匹配表达式pattern
+(?!pattern) 要求此位置的后面不能匹配表达式pattern
+(?<=pattern) 要求此位置的前面必须匹配表达式pattern
+(?<!pattern) 要求此位置的前面不能匹配表达式pattern
+向文本末端方向为前
+```{r}
+win <- c("Windows2000", "Windows", "Windows3.1")
+str_view(win, pattern = "Windows(?=95|98|NT|2000)")
+
+win <- c("2000Windows", "Windows", "3.1Windows")
+str_view(win, "(?<!95|98|NT|2000)Windows")
+```
+```{r}
+tb <- tibble(x = c("I我", "love爱", "you你"))
+tb %>% extract(x, c("en", "zh"), "([a-zA-Z]+)([^a-zA-Z]+)", remove=F)
+```
+
+
+Extract a character column into multiple columns using regular expression groups
+```{r}
+df <- data.frame(x = c(NA, "a-b", "a-d", "b-c", "d-e"))
+df %>% extract(x, "A")
+df %>% extract(x, c("A", "B"), "([[:alnum:]]+)-([[:alnum:]]+)")
+```
+
+
+## 因子处理
+```{r}
+fa <- factor(c("A", "AB", "B", "O", "AB", "A", "A", "A", "A"))
+# 重新调整水平
+fa %>% fct_relevel(c("O", "AB"))
+fa %>% fct_relevel("AB", after=Inf)
+# 以首次出现的顺序为水平顺序 
+fa %>% fct_inorder()
+# 按照其他变量的中位数的升序排序
+fa %>% fct_reorder(c(1:9), .fun = median)  
+```
+fct_reorder()可以让x的顺序按照x中每个分类变量对应y值的中位数升序排序，具体为
+a对应的y值c(2, 2) 中位数是median(c(2, 2)) = 2
+b对应的y值c(1, 5) 中位数是median(c(1, 5)) = 3
+c对应的y值c(0, 3) 中位数是median(c(0, 3)) = 1.5
+
+## 层级逆序
+```{r}
+fa <- factor(c("A", "AB", "B", "O", "AB", "A", "A", "A", "A"))
+fa %>% fct_rev()
+```
+
+## 函数式编程
+```{r}
+set.seed(123)
+exams <- list(
+  student1 = round(runif(10, 50, 100)),
+  student2 = round(runif(10, 50, 100)),
+  student3 = round(runif(10, 50, 100)),
+  student4 = round(runif(10, 50, 100)),
+  student5 = round(runif(10, 50, 100))
+)
+map_dbl(exams, mean)
+map_df(exams, mean)
+```
+
+|函数|返回|
+|:-:|:-:|
+|map()|list|
+|map_chr()|character vector|
+|map_dbl|double vector(numeric)|
+|map_int()|integer vector|
+|map_lgl()|logical vector|
+|map_df()|data frame|
+
+```{r}
+center <- function(x){
+  x-mean(x)
+}
+
+exams %>% map_df(center)
+
+map_df(exams, ~.x - mean(.x)) # .x指代map的data数据
+map_df(exams, ~. - mean(.)) # . 也指代data...
+```
+
+## 用于建模
+```{r}
+mtcars %>%
+  group_by(cyl) %>%
+  nest() %>%
+  mutate(model = purrr::map(data, ~ lm(mpg ~ wt, data = .))) %>%
+  mutate(result = purrr::map(model, ~ broom::tidy(.))) %>%
+  unnest(result)
+```
+
+
+```{r}
+exams %>% map(~ . - mean(.))
+
+exams %>% modify(~ . - mean(.))
+
+# Unlike map() and its variants which always return a fixed object type (list for map(), integer vector for map_int(), etc), the modify() family always returns the same type as the input object.
+```
+
+```{r}
+letters
+```
+
+## tibble
+
+```{r}
+df1 <- data.frame(a=c(1:10), b=rnorm(10))
+tibb <- as_tibble(df1)
+tibb %>% add_column(c=runif(10)) 
+tibb %>% add_row(a=0, b=1, .before = 2)# 添加行
+```
+
+## lst
+创建一个list，具有tibble特性的list
+
+```{r}
+lst(n = 5, x = runif(n), y = TRUE)
+```
+## enframe
+enframe()将矢量快速创建tibble，，创建的tibble只有2列: name和value
+```{r}
+ef <- enframe(c(a=1, b=2, c=4))
+ef
+```
+
+## deframe
+deframe()可以看做是enframe() 的反操作，把tibble反向转成向量
+```{r}
+ef <- enframe(c(a=1, b=2, c=4))
+deframe((ef))
+```
+```{r}
+iii <- iris
+rownames(iii) <- str_c("a", 1:150)
+iii %>% mutate(rownames=rownames(iii)) %>% select(rownames, everything())
+# 或直接使用函数
+iii %>% rownames_to_column(var = "rownames")
+
+# 把行索引转换为单独的一列
+rowid_to_column(iii, var = "rowid")
+```
+## 修复列名
+.name_repair = "check_unique" 检查列名唯一性，但不做修复（默认）
+
+.name_repair = "minimal"， 不检查也不修复，维持现状
+
+.name_repair = "unique" 修复列名，使得列名唯一且不为空
+
+.name_repair = "universal" 修复列名，使得列名唯一且语法可读
+```{r}
+tibble(x=1, x=2, .name_repair = "universal")
+tibble(x=1, x=2, .name_repair =  ~ make.unique(., sep = "_"))
+tibble(x=1, x=2, .name_repair =  ~ make.names(., unique = TRUE))
+tibble("x  1"=1, "x-2"=2) %>% janitor::clean_names() # 一步到位
+```
+
+```{r}
+iris %>%
+  group_by(Species) %>%
+  nest()
+```
+
+
+```{r, eval=FALSE}
+library(tidyverse)
+library(gghighlight)
+library(cowplot)
+library(patchwork)
+library(ggforce)
+```
+
+
+```{r}
+df <- read_csv("./demo_data/datasaurus.csv")
+head(df)
+df %>% group_by(dataset) %>% summarise(n=n(), meansX = mean(x), meanY=mean(y), sdX=sd(x), sdY=sd(y), corXY = cor(x,y))
+
+df %>% group_by(dataset) %>% summarise(across(everything(), list(mean=mean, sd=sd), .names = "{fn}_{col}")) %>% mutate(across(.cols=is.numeric, .fns=round, 3))
+
+ggplot(data = df, mapping=aes(x=x, y=y, color=dataset))+
+  geom_point()+
+  facet_wrap(~dataset, nrow=3)
+```
+
+## ggplot2
+
+```{r}
+gapdata <- read_csv("./demo_data/gapminder.csv")
+# 查看缺失值
+gapdata %>% summarise(across(everything(), ~sum(is.na(.))))
+```
+
+## 柱状图
+用于离散变量
+```{r}
+# ggplot2 接收数据框或tibble
+gapdata %>% ggplot()+
+  geom_bar(mapping=aes(x=continent, fill = continent))
+gapdata %>% ggplot()+
+  geom_bar(mapping=aes(x=reorder(continent, continent, length), fill = continent))
+```
+
+```{r}
+gapdata %>% distinct(continent, country) %>% group_by(continent) %>% summarise(num=n()) %>% ggplot(aes(x=continent, y=num)) + geom_col(aes(fill=continent))
+```
+
+## 直方图
+用于连续变量
+position 有三个可选
+"stack"
+"identity"
+"dodge"
+```{r}
+gapdata %>% ggplot(mapping=aes(x=lifeExp, fill=continent)) + geom_histogram(alpha=.5, binwidth = 1, position = "identity")
+
+gapdata %>% ggplot(mapping=aes(x=lifeExp, color=continent)) +geom_freqpoly()
+
+gapdata %>% ggplot(mapping=aes(x=lifeExp, fill = continent)) + geom_density(adjust = .5, alpha=.5)
+
+gapdata %>% ggplot(mapping=aes(x=lifeExp)) + geom_line(stat="density")
+```
+
+```{r}
+gapdata %>% filter(continent != "Europe") %>% ggplot(aes(x=lifeExp)) + geom_density(aes(fill=continent), alpha=.5) + facet_grid(.~continent)
+
+gapdata %>% filter(continent != "Europe") %>% ggplot(aes(x=lifeExp, y = stat(density), fill=continent)) + geom_histogram()+ geom_density(alpha=.2) + facet_grid(continent~.)
+# 直方图和密度图画在一起。注意y = stat(density)表示y是由x新生成的变量，这是一种固定写法，类似的还有stat(count), stat(level)
+```
+
+## 箱线图
+离散变量 + 连续变量
+```{r}
+# year是连续性变量, 绘制箱线图必须转为离散型, 因子
+gapdata %>% ggplot(aes(x=as_factor(year), y=lifeExp)) + geom_boxplot(aes(fill=as_factor(year)))
+
+# 或明确指定分组
+gapdata %>% ggplot(aes(x = year, y = lifeExp, fill=as_factor(year))) + geom_boxplot(aes(group = year))
+
+
+gapdata %>% ggplot(aes(x = year, y = lifeExp)) + geom_violin(aes(group = year, fill=as_factor(year))) + geom_jitter(alpha=.1) + geom_smooth(se = FALSE) # se 指拟合曲线的置信区间
+```
+
+## 抖散图
+点重叠的处理方案
+```{r}
+# 点重叠
+gapdata %>% ggplot(mapping=aes(x=continent, y=lifeExp)) + geom_point(aes(color=continent))
+
+gapdata %>% ggplot(mapping=aes(x=continent, y=lifeExp)) + geom_point(aes(color=continent), position = "jitter")
+
+# The jitter geom is a convenient shortcut for geom_point(position = "jitter")
+# 添加统计摘要 stat_summary
+gapdata %>% ggplot(mapping=aes(x=continent, y=lifeExp)) + geom_jitter(aes(color=continent)) + stat_summary(fun.y = median, colour = "red", geom = "point", size = 5)
+
+gapdata %>% ggplot(mapping=aes(x=continent, y=lifeExp)) + geom_violin(trim = .1) + stat_summary(fun.y = mean, fun.ymax = function(x){mean(x)+sd(x)}, fun.ymin = function(x){mean(x)-sd(x)}, geom="pointrange")
+```
+
+## 山峦图
+离散变量 + 连续变量
+```{r}
+gapdata %>% ggplot(aes(x=lifeExp, y=continent, fill=continent)) + ggridges::geom_density_ridges() + scale_fill_manual(values = c("#003f5c", "#58508d", "#bc5090", "#ff6361", "#ffa600"))
+
+gapdata %>% ggplot(aes(x=lifeExp, y=continent, fill=continent)) + ggridges::geom_density_ridges() + scale_fill_manual(values = colorspace::sequential_hcl(5, palette = "red"))
+```
+
+
+## 散点图
+用于两个连续变量
+```{r}
+gapdata %>% ggplot(aes(x=gdpPercap, y=lifeExp, color=continent)) + geom_point() + facet_wrap(~continent, nrow=3)
+
+gapdata %>% ggplot(aes(x=gdpPercap, y=lifeExp, color=continent)) + geom_point() + facet_grid(continent~.) + scale_x_log10()
+
+gapdata %>% ggplot(aes(x=log(gdpPercap), y=lifeExp, color=continent)) + geom_point() + geom_smooth()
+
+
+```
+
+对于调查特定的国家
+```{r}
+lcountry = c("Canada", "Rwanda", "Cambodia", "Mexico", "China")
+
+gapdata %>% filter(country %in% lcountry) %>% ggplot(aes(x=year, y=lifeExp, color=country)) + geom_line() + geom_point()
+
+# 图例的顺序和图中折线顺序不同, 容易有歧义, 重新给color进行reorder
+# 按最大年龄进行排序
+gapdata %>% filter(country %in% lcountry) %>% ggplot(aes(x=year, y=lifeExp, color=reorder(country, -1*lifeExp, max))) + geom_line() + geom_point()
+
+# 更推荐
+# 在数据中新建一个变量endlabel, 当年龄为组中的最大时, endlabel=country名, 即各组最高的点
+gapdata %>% filter(country %in% lcountry) %>% group_by(continent) %>% mutate(endlabel = if_else(year==max(year), country, NA_character_)) %>% ggplot(aes(x=year, y=lifeExp, color=country)) + geom_line() + geom_point() + geom_label(aes(label=endlabel)) + theme(legend.position = "none")
+
+# 或更直接, 使用gghighlight
+gapdata %>% filter(country %in% lcountry) %>% ggplot(aes(x=year, y=lifeExp, color=country)) + geom_line() + geom_point() + gghighlight::gghighlight()
+```
+
+## 点线图
+
+```{r}
+gapdata %>% filter(continent== "Asia" & year==2007) %>% ggplot(aes(x=lifeExp, y=country)) + geom_point()
+```
+
+```{r}
+gapdata %>% filter(continent== "Asia" & year==2007) %>% ggplot(aes(x=lifeExp, y=reorder(country, -1*lifeExp))) + geom_point() + geom_segment(aes(x=40, xend=lifeExp, y=reorder(country, lifeExp), yend = reorder(country, lifeExp)), color="grey")  + labs(x = "Life Expectancy (years)",y = "",title = "Life Expectancy by Country",subtitle = "GapMinder data for Asia - 2007") + theme_minimal() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+
+## 文本标注
+```{r}
+gapdata %>% ggplot(aes(x=gdpPercap, y=lifeExp)) + geom_point() + ggforce::geom_mark_ellipse(aes(filter=gdpPercap>50000, label="有钱人", description="他们是谁?"))
+```
+
+```{r}
+library(ggrepel)
+
+ten_countries <- gapdata %>% distinct(country) %>% pull() %>% sample(10)
+
+gapdata %>% filter(year == 2007) %>% mutate(label = if_else(country %in% ten_countries, as.character(country), "")) %>% ggplot(aes(x=log(gdpPercap), y=lifeExp))+geom_point(shape = 21, color="white", fill="#0162B2") + geom_text_repel(aes(label=label), size = 4, point.padding = .5, box.padding = .5, force=.5, min.segment.length = 0)+labs(x = "log(GDP per capita)", y = "life expectancy", title="main")
+
+```
+## errorbar图
+```{r}
+avg <- gapdata %>% group_by(continent) %>% summarise(mean = mean(lifeExp), sd = sd(lifeExp))
+avg %>% ggplot(aes(x=continent, y=mean, fill=continent)) + geom_point() + geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.5)
+```
+
+## 椭圆图
+```{r}
+gapdata %>% ggplot(aes(x=log(gdpPercap), y=lifeExp)) + geom_point() + stat_ellipse(type = "norm", level=.5, color="red", size=2)
+```
+## 2D密度图
+```{r}
+gapdata %>% ggplot(aes(x=gdpPercap, y=lifeExp)) + geom_bin2d()
+gapdata %>% ggplot(aes(x=gdpPercap, y=lifeExp)) + geom_hex()
+```
+
+## 马赛克图
+常用于三变量
+```{r}
+gapdata %>% group_by(continent, year) %>% summarise(mean = mean(lifeExp)) %>% ggplot(aes(x = year, y = continent, fill = mean)) + geom_tile() + scale_fill_viridis_c()
+
+# scale_size_continuous设置点大小
+gapdata %>% group_by(continent, year) %>% summarise(mean = mean(lifeExp)) %>% ggplot(aes(x = year, y = continent, size = mean)) + scale_size_continuous(range = c(7, 15)) + geom_point(shape = 21, color = "red", fill = "white") + geom_text(aes(label = round(mean, 2)), size = 3, color = "black")
+```
+
+```{r}
+gapdata %>% group_by(continent, year) %>% summarise(mean = mean(lifeExp)) 
+```
+
+## 主题
+```{r}
+gapdata %>% ggplot(mapping=aes(x = gdpPercap, y = lifeExp, color = continent)) + geom_point()+geom_smooth(method="lm", lwd=2, se=F) + theme_gray() # grey默认主题
+
+gapdata %>% ggplot(mapping=aes(x = gdpPercap, y = lifeExp, color = continent)) + geom_point()+geom_smooth(method="lm", lwd=2, se=F) + theme_bw()
+
+gapdata %>% ggplot(mapping=aes(x = gdpPercap, y = lifeExp, color = continent)) + geom_point()+geom_smooth(method="lm", lwd=2, se=F) + ggthemes::theme_economist()
+```
+
+## 定制
+label
+```{r}
+gapdata %>% ggplot(mapping=aes(x = gdpPercap, y = lifeExp, color = continent)) + geom_point() + ggtitle("Main") + xlab("GP") + ylab("LE")
+
+# 或直接用labs
+gapdata %>% ggplot(mapping=aes(x = gdpPercap, y = lifeExp, color = continent)) + geom_point() + labs(title="Main", subtitle = "Sub", x="GP", y="LE")
+```
+
+## 定制颜色
+scale_colour_manual() 和 scale_fill_manual()
+
+```{r}
+gapdata %>% ggplot(mapping=aes(x = gdpPercap, y = lifeExp, color = continent)) + geom_point()+scale_color_manual(values = c("#195744", "#008148", "#C6C013", "#EF8A17", "#EF2917"))
+```
+
+## 多图组合
+
+可以使用 cowplot 宏包的plot_grid()函数完成多张图片的组合
+也可以使用patchwork宏包
+```{r}
+p1 <- gapdata %>%
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(aes(color = lifeExp > mean(lifeExp))) +
+  scale_x_log10() +
+  theme(legend.position = "none") +
+  scale_color_manual(values = c("orange", "pink")) +
+  labs(
+    title = "My Plot Title",
+    x = "The X Variable",
+    y = "The Y Variable"
+  )
+
+p2 <- gapdata %>%
+  ggplot(aes(x = gdpPercap, y = lifeExp, color = continent)) +
+  geom_point() +
+  scale_x_log10() +
+  scale_color_manual(
+    values = c("#195744", "#008148", "#C6C013", "#EF8A17", "#EF2917")
+  ) +
+  theme(legend.position = "none") +
+  labs(
+    title = "My Plot Title",
+    x = "The X Variable",
+    y = "The Y Variable"
+  )
+
+cowplot::plot_grid(p1,p2, labels = c("A", "B"))
+library(patchwork)
+p1+p2
+p1/p2
+
+# 详细信息
+p1 + p2 +
+  plot_annotation(
+    tag_levels = "a",
+    title = "The surprising truth about mtcars",
+    subtitle = "These 3 plots will reveal yet-untold secrets about our beloved data-set",
+    caption = "Disclaimer: None of these plots are insightful"
+  )
+```
+
+## 中文字体
+```{r}
+library(showtext)
+showtext_auto()
+
+gapdata %>%
+  ggplot(aes(x = gdpPercap, y = lifeExp, color = continent)) +
+  geom_point() +
+  scale_x_log10() +
+  scale_color_manual(
+    values = c("#195744", "#008148", "#C6C013", "#EF8A17", "#EF2917")
+  ) +
+  theme(legend.position = "none") +
+  labs(
+    title = "这是我的标题美美哒",
+    x = "这是我的x坐标",
+    y = "这是我的y坐标"
+  )
+```
+
+## 高亮某一组
+先画浅色, 再画亮色
+```{r}
+drop_facet <- function(x) select(x, -continent)
+
+gapdata %>%
+  ggplot() +
+  geom_line(
+    data = drop_facet,
+    aes(x = year, y = lifeExp, group = country), color = "grey",
+  ) +
+  geom_line(aes(x = year, y = lifeExp, color = country, group = country)) +
+  facet_wrap(vars(continent)) +
+  theme(legend.position = "none")
+```
+
+## gghighlight方法
+
+```{r}
+gapdata %>% filter(country == "China")
+
+gapdata %>%ggplot(aes(x = year, y = lifeExp, color = continent, group = country)) + geom_line() + gghighlight(country %in% lcountry, label_key = country)
+```
+```{r}
+gapdata %>%
+  ggplot(
+    aes(x = year, y = lifeExp, color = continent, group = country)
+  ) +
+  geom_line() +
+  gghighlight(
+    country == "China", # which is passed to dplyr::filter().
+    label_key = country
+  )
+
+gapdata %>%
+  filter(continent == "Asia") %>%
+  ggplot(aes(year, lifeExp, color = country, group = country)) +
+  geom_line(size = 1.2, alpha = .9, color = "#E58C23") +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  gghighlight(
+    country %in% c("China", "India", "Japan", "Korea, Rep."),
+    use_group_by = FALSE,
+    use_direct_label = FALSE,
+    unhighlighted_params = list(color = "grey90")
+  ) +
+  facet_wrap(vars(country))
+```
+
+## 函数图
+诸如正态图
+```{r}
+# 一般
+tibble(x=seq(-3,3,by=.1)) %>% mutate(y = dnorm(x)) %>% ggplot(aes(x=x, y=y)) + geom_line()
+
+# 或使用stat_function
+ggplot(data=data.frame(x=c(-3,3)), aes(x=x)) + stat_function(fun = dnorm, geom="line", color="red")
+
+tibble(x=c(0:1)) %>% ggplot(aes(x=x))+stat_function(fun="dnorm")
+```
+
+```{r}
+d <- tibble(x = rnorm(2000, mean = 2, sd = 4))
+
+ggplot(data = d, aes(x = x)) +
+  geom_histogram(aes(y = stat(density))) +
+  geom_density() +
+  stat_function(fun = dnorm, args = list(mean = 2, sd = 4), colour = "red") # args为fun的参数
+```
+
+## 地图
+```{r}
+nyc_squirrels <- read_csv("./demo_data/nyc_squirrels.csv")
+central_park <- sf::read_sf("./demo_data/central_park")
+
+ggplot() + geom_sf(data = central_park)
+
+nyc_squirrels %>% drop_na(primary_fur_color) %>% ggplot() + geom_sf(data=central_park, color = "grey85") + geom_point(aes(x=long, y=lat, color = primary_fur_color), size = .8)+
+  facet_wrap(vars(primary_fur_color))
+
+```
+
+高亮
+```{r}
+nyc_squirrels %>%
+  drop_na(primary_fur_color) %>%
+  ggplot() +
+  geom_sf(data = central_park, color = "grey85") +
+  geom_point(
+    aes(x = long, y = lat, color = primary_fur_color),
+    size = .8
+  ) +
+  gghighlight(
+    label_key = primary_fur_color,
+    use_direct_label = FALSE
+  ) +
+  facet_wrap(vars(primary_fur_color)) +
+  cowplot::theme_map(16) +
+  theme(legend.position = "none")
+```
+
+```{r}
+library(ggplot2)
+library(showtext)
+showtext_auto()
+
+font_families()
+font_paths()
+
+font_add("heiti", "simhei.ttf")
+font_add("constan", "constan.ttf", italic = "constani.ttf")
+font_add("kaishu", "simkai.ttf")
+# font_add("Noto", "NotoSansCJKsc-Regular.otf")
+```
+
+字体
+```{r}
+# ggplot(data = mpg) +
+#   geom_point(mapping = aes(x = displ, y = hwy)) +
+#   ggtitle("这是我的小标宋简体") +
+#   theme(
+#     plot.title = element_text(family = "fzxbsj")
+#   ) +
+#   geom_text(aes(x = 5, y = 40),
+#     label = "方正仿宋简体",
+#     family = "fzfsj"
+#   ) +
+#   geom_text(aes(x = 5, y = 38),
+#     label = "这是我的雅黑",
+#     family = "Yahei"
+#   ) +
+#   geom_text(aes(x = 5, y = 35),
+#     label = "方正楷书简体",
+#     family = "kaishu"
+#   ) +
+#   geom_text(aes(x = 5, y = 30),
+#     label = "草檀斋毛泽东字体",
+#     family = "maoti"
+#   ) +
+#   geom_text(aes(x = 5, y = 28),
+#     label = "方正苏新诗柳楷简体",
+#     family = "fzshuliu"
+#   )
+```
+
+## 公式
+```{r}
+library(ggplot2)
+library(latex2exp)
+
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  annotate("text",
+    x = 4, y = 40,
+    label = TeX("$\\alpha^2 + \\theta^2 = \\omega^2 $"),
+    size = 9
+  ) +
+  labs(
+    title = TeX("The ratio of 1 and 2 is $\\,\\, \\frac{1}{2}$"),
+    x = TeX("$\\alpha$"),
+    y = TeX("$\\alpha^2$")
+  )
+```
+
+## 各种图
+```{r}
+library(tidyverse)
+library(ggridges)
+library(patchwork)
+
+p1 <- ggplot(mpg, aes(x = cty, y = hwy)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title = "1: geom_point() + geom_smooth()") +
+  theme(plot.title = element_text(face = "bold"))
+
+p2 <- ggplot(mpg, aes(x = cty, y = hwy)) +
+  geom_hex() +
+  labs(title = "2: geom_hex()") +
+  guides(fill = FALSE) +
+  theme(plot.title = element_text(face = "bold"))
+
+p3 <- ggplot(mpg, aes(x = drv, fill = drv)) +
+  geom_bar() +
+  labs(title = "3: geom_bar()") +
+  guides(fill = FALSE) +
+  theme(plot.title = element_text(face = "bold"))
+
+p4 <- ggplot(mpg, aes(x = cty)) +
+  geom_histogram(binwidth = 2, color = "white") +
+  labs(title = "4: geom_histogram()") +
+  theme(plot.title = element_text(face = "bold"))
+
+p5 <- ggplot(mpg, aes(x = cty, y = drv, fill = drv)) +
+  geom_violin() +
+  guides(fill = FALSE) +
+  labs(title = "5: geom_violin()") +
+  theme(plot.title = element_text(face = "bold"))
+
+p6 <- ggplot(mpg, aes(x = cty, y = drv, fill = drv)) +
+  geom_boxplot() +
+  guides(fill = FALSE) +
+  labs(title = "6: geom_boxplot()") +
+  theme(plot.title = element_text(face = "bold"))
+
+p7 <- ggplot(mpg, aes(x = cty, fill = drv)) +
+  geom_density(alpha = 0.7) +
+  guides(fill = FALSE) +
+  labs(title = "7: geom_density()") +
+  theme(plot.title = element_text(face = "bold"))
+
+p8 <- ggplot(mpg, aes(x = cty, y = drv, fill = drv)) +
+  geom_density_ridges() +
+  guides(fill = FALSE) +
+  labs(title = "8: ggridges::geom_density_ridges()") +
+  theme(plot.title = element_text(face = "bold"))
+
+p9 <- ggplot(mpg, aes(x = cty, y = hwy)) +
+  geom_density_2d() +
+  labs(title = "9: geom_density_2d()") +
+  theme(plot.title = element_text(face = "bold"))
+
+p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 +
+  plot_layout(nrow = 3)
+```
+
+## ggplot主题设置
+theme elements 语法
+theme(element_name = element_function())
+
+这里element_function()有四个
+
+element_text()
+element_line()
+element_rect()
+element_blank()
+望文生义吧，内置元素函数有四个基础类型：
+
+element_text(), 文本，一般用于控制标签和标题的字体风格
+element_line(), 线条，一般用于控制线条或线段的颜色或线条类型
+element_rect(), 矩形区域，一般用于控制背景矩形的颜色或者边界线条类型
+element_blank() , 空白，就是不分配相应的绘图空间，即删去这个地方的绘图元素。
+
+```{r}
+df <- mpg %>% 
+  as_tibble() %>% 
+  filter(class != "2seater", manufacturer %in% c("toyota", "volkswagen"))
+
+fig1 <- df %>% ggplot(aes(x = displ, y = hwy, color = factor(cyl))) + geom_point() + facet_grid(manufacturer~class)+ggtitle("这是我的标题") + labs(x = "x_displ", y = "y_hwy")
+
+```
+## 图标控制
+图标整体元素
+
+图表整体元素包括:
+
+描述|主题元素|元素函数|
+|:--:|:--:|:--:|
+|整个图形背景|plot.background|element_rect()|
+|图形标题|plot.title|element_text()|
+|图形边距|plot.margin|margin()|
+```{r}
+fig1 + theme(plot.background = element_rect(fill="orange", color="black", size=1), 
+             plot.title = element_text(hjust = 1, color="red", face = "italic"), 
+             plot.margin = margin(t = 20, r = 20, b = 20, l = 20, unit = "pt"))
+
+```
+
+## 坐标轴元素
+坐标轴元素包括:
+描述	            主题元素	  元素函数
+坐标轴刻度	    axis.ticks	element_line()
+坐标轴标题	    axis.title	element_text()
+坐标轴标签	    axis.text	  element_text()
+直线和坐标轴    axis.line	  element_line()
+
+```{r}
+fig1+theme(axis.ticks=element_line(color = "blue", size=2), # 刻度
+           axis.title = element_text(color="red", face="italic"), # 标题
+           axis.line = element_line(color = "green", size=3), # 线条
+           axis.text = element_text(color="purple", size=10), # 刻度值
+           axis.text.x = element_text(color="yellow", size=20, angle = 45, hjust=1), # 刻度值
+           )
+```
+
+## 面板元素
+面板元素包括:
+
+描述	          主题元素	        类型
+面板背景	  panel.background	element_rect()
+面板网格线	panel.grid	      element_line()
+面板边界	  panel.border	    element_rect()
+```{r}
+fig1+theme(
+    panel.background = element_rect(fill = "orange"),
+    panel.grid = element_line(color = "grey80", size = .1),
+    panel.border = element_rect(color = "red", fill = NA)
+  )
+```
+
+## 图例元素
+图例元素包括:
+
+描述	       主题元素	            类型
+图例背景	legend.background	  element_rect()
+图例符号	legend.key	        element_rect()
+图例标签	legend.text	        element_text()
+图例标题	legend.title	      element_text()
+图例边距	legend.margin	      margin
+图例位置	legend.postion	    “top”, “bottom”, “left”, “right”
+
+```{r}
+fig1+  theme(
+    legend.background = element_rect(fill = "orange"),
+    legend.title = element_text(color = "blue", size = 10),
+    legend.key = element_rect(fill = "grey80"),
+    legend.text = element_text(color = "red"),
+    legend.margin = margin(t = 20, r = 20, b = 20, l = 20, unit = "pt"),
+    legend.position = "bottom"
+  )
+```
+
+## 分面元素
+分面元素包括:
+
+描述	             主题元素	       类型
+分面标签背景	strip.background	element_rect()
+条状文本	    strip.text      	element_text()
+分面间隔	    panel.spacing	    unit
+```{r}
+fig1+ theme(
+    strip.background = element_rect(fill = "orange"),
+    strip.text = element_text(color = "red"),
+    panel.spacing = unit(.1, "inch") # ,
+    # strip.switch.pad.grid =
+  )
+```
+
+## ggplot标度 scale
+
+简单点来说，标度是用于调整数据映射的图形属性。 在ggplot2中，每一种图形属性都拥有一个默认的标度，也许你对这个默认的标度不满意，可以就需要学习如何修改默认的标度。比如， 系统默认"a"对应红色，"b"对应蓝色，我们想让"a"对应紫色，"b"对应橙色。
+
+```{r}
+mpg %>% ggplot(aes(x=displ, y=cty)) + geom_point(aes(color=class))
+
+
+# 完整来说应是
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point(aes(colour = class)) +
+  scale_x_continuous() + # x为连续
+  scale_y_continuous() +  # y为连续
+  scale_colour_discrete() # 颜色为离散
+
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point(aes(colour = class)) +
+  scale_x_continuous() + # x为连续
+  scale_y_continuous(name="hwy哈哈哈") +  # y为连续
+  scale_colour_brewer() # 颜色为离散
+```
+
+## 坐标轴和图例是同样的东西
+坐标轴刻度间隔是breaks, 数值是labels
+图例样式是breaks, 字是labels
+图例
+mapping(aes(color=...))
+scale_color_...(...)
+坐标轴
+mapping(aes(x=...))
+scale_x_...(...)
+
+注意到，标度函数是由"_"分割的三个部分构成的
+- scale 
+- 视觉属性名 (e.g., colour, shape or x) 
+- 标度名 (e.g., continuous, discrete, brewer).
+
+每个标度函数内部都有丰富的参数系统
+
+scale_colour_manual(
+  palette = function(), 
+  limits = NULL,
+  name = waiver(),
+  labels = waiver(),
+  breaks = waiver(),
+  minor_breaks = waiver(),
+  values = waiver(),
+  ...
+)
+
+参数name，坐标和图例的名字，如果不想要图例的名字，就可以 name = NULL
+
+参数limits, 坐标或图例的范围区间。连续性c(n, m)，离散型c("a", "b", "c")
+
+参数breaks, 控制显示在坐标轴或者图例上的值（元素）
+
+参数labels, 坐标和图例的间隔标签
+一般情况下，内置函数会自动完成
+也可人工指定一个字符型向量，与breaks提供的字符型向量一一对应
+也可以是函数，把breaks提供的字符型向量当做函数的输入
+NULL，就是去掉标签
+
+参数values 指的是（颜色、形状等）视觉属性值,
+要么，与数值的顺序一致；
+要么，与breaks提供的字符型向量长度一致
+要么，用命名向量c("数据标签" = "视觉属性")提供
+
+参数expand, 控制参数溢出量
+
+参数range, 设置尺寸大小范围，比如针对点的相对大小
+
+## 例
+
+```{r}
+gapdata <- read_csv("./demo_data/gapminder.csv")
+newgapdata <- gapdata %>% 
+  group_by(continent, country) %>% 
+  summarise(
+    across(c(lifeExp, gdpPercap, pop), mean)
+  )
+newgapdata %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+    geom_point(aes(color = continent, size = pop)) +
+    scale_x_continuous()
+
+newgapdata %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+    geom_point(aes(color = continent, size = pop)) +
+    scale_x_log10() # 改变x坐标
+
+newgapdata %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+    geom_point(aes(color = continent, size = pop)) +
+    scale_x_log10(breaks = c(500, 1000, 3000, 10000, 30000),
+                  labels = scales::dollar) # 进一步改变x轴, 更改间隔与标签
+
+newgapdata %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+    geom_point(aes(color = continent, size = pop)) +
+    scale_x_log10(
+      name = "人均GDP",
+      breaks = c(500, 1000, 3000, 10000, 30000),
+      labels = scales::unit_format(unit = "美元"))
+
+newgapdata %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+    geom_point(aes(color = continent, size = pop)) +
+    scale_x_log10() +
+    scale_color_viridis_d() # 改变颜色
+
+# 离散变量映射到色彩的情形，可以使用ColorBrewer色彩
+newgapdata %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+    geom_point(aes(color = continent, size = pop)) +
+    scale_x_log10() +
+    scale_color_brewer(type = "qual", palette = "Set1")
+
+newgapdata %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+    geom_point(aes(color = continent, size = pop)) +
+    scale_x_log10() +
+    scale_color_manual(
+      name = "五大洲",
+      values = c("Africa" = "red", "Americas" = "blue", "Asia" = "orange",
+                 "Europe" = "black", "Oceania" = "gray"),
+      breaks = c("Africa", "Americas", "Asia", "Europe", "Oceania"),
+      labels = c("非洲", "美洲", "亚洲", "欧洲", "大洋洲")
+    ) +
+   scale_size(
+     name = "人口数量",
+     breaks = c(2e8, 5e8, 7e8),
+     labels = c("2亿", "5亿", "7亿")
+   )
+```
+
+## 用标度还是主题？
+那什么时候用标度，什么时候用主题？这里有个原则：主题风格不会增加标签，也不会改变变量的范围，主题只会改变字体、大小、颜色等等。
+
+## 图例系统
+
+如果想调整图例的样式，可以使用guides()函数，用法类似上节课中的theme函数, 具体参数为：
+
+要么是字符串 (i.e. "color = colorbar" or "color = legend"),
+要么是特定的函数 (i.e. color = guide_colourbar() or color = guide_legend())
+
+colorbar连续
+legend离散
+
+```{r}
+mpg %>%
+  ggplot(aes(x = displ, y = hwy, color = factor(cyl))) +
+  geom_point() + guides(color = "legend")
+
+mpg %>%
+  ggplot(aes(x = displ, y = hwy, color = factor(cyl))) +
+  geom_point() +
+  ggtitle("这是我的标题") +
+  labs(x = "x_displ", y = "y_hwy") +
+  guides(color = guide_bins(
+                 title = "my title",
+                 label.hjust = 1
+                 )
+         )
+
+mpg %>%
+  ggplot(aes(x = displ, y = hwy, color = factor(cyl))) +
+  geom_point() +
+  ggtitle("这是我的标题") +
+  labs(x = "x_displ", y = "y_hwy") +
+  guides(color = guide_legend(
+                   ncol = 4
+                 )
+  )
+
+mpg %>%
+  ggplot(aes(x = displ, y = hwy, color = factor(cyl))) +
+  geom_point() +
+  ggtitle("这是我的标题") +
+  labs(x = "x_displ", y = "y_hwy") +
+  guides(color = guide_legend(
+    title = "标题好像有点高",
+    title.position = "top",
+    title.vjust = 5,
+    label.position = "left",
+    label.hjust = 1,
+    label.theme = element_text(size = 15,
+                               face = "italic",
+                               colour = "red",
+                               angle = 0),
+    keywidth = 5,
+    reverse = TRUE
+   )
+  )
+
+mpg %>%
+  ggplot(aes(x = displ, y = hwy, color = class, size = cyl)) +
+  geom_point() +
+  guides(color = guide_legend("汽车类型"),  # keep
+         size = FALSE                       # remove
+         )
+```
+
+```{r}
+mtcars %>%
+  as_tibble() %>%
+  ggplot(aes(x = wt, y = mpg, shape = factor(vs), color = hp)) +
+  geom_point(size = 3) +
+  colorspace::scale_color_continuous_sequential(palette = "Dark Mint") +
+  scale_shape_discrete(labels = c("V-shaped", "Straight")) +
+  labs(
+    x = "Weight (1000 lbs)", y = "Miles per gallon",
+    title = "Motor Trend Car Road Tests",
+    shape = "Engine", color = "Horsepower"
+  ) +
+  theme(
+    text = element_text(size = 18, color = "white"),
+    rect = element_rect(fill = "red"),
+    panel.background = element_rect(fill = "white"),
+    legend.key = element_rect(fill = "green"),
+    axis.text = element_text(color = "white"),
+    plot.title.position = "plot",
+    plot.margin = margin(10, 10, 10, 10)
+  ) +
+  guides(
+    shape =
+      guide_legend(override.aes = list(color = "white"))
+  )
+```
+
+
+```{r}
+gapdata %>%
+  ggplot(
+    aes(x = year, y = lifeExp, color = continent, group = country)
+  ) +
+  geom_line() +
+  gghighlight(
+    country %in% c("China", "Japan"), # which is passed to dplyr::filter().条件
+    label_key = country # 标签
+  )
+```
+
+## scoped 范围函数
+
+dplyr的一些函数（mutate(), select()等等），事实上，这些函数加上后缀 _all, _at, _if，形成三组变体函数，可以方便对特定的子集进行操作。比如
+
+对数据框所有列操作，可以用_all
+对数据框指定的几列操作，可以用_at
+对数据框符合条件的几列进行操作，可以用_if
+Operate	          _all	          _at	           _if
+select()	   select_all()	    select_at()	    select_if()
+mutate()	   mutate_all()	    mutate_at()	    mutate_if()
+rename()	   rename_all()	    rename_at()	    rename_if()
+arrange()	   arrange_all()	  arrange_at()	  arrange_if()
+filter()	   filter_all()	    filter_at()	    filter_if()
+distinct()	 distinct_all()	  distinct_at()	  distinct_if()
+group_by()	 group_by_all()	  group_by_at()	  group_by_if()
+summarise()	 summarise_all()	summarise_at()	summarise_if()
+map()	       map_all()	      map_at()	      map_if()
+modify()	   modify_all()	    modify_at()	   modify_if()
+
+## mutate_if
+
+```{r}
+irisdf <- head(iris,10)
+irisdf %>% mutate_if(is.double, as.integer) # 把符合条件的进行操作
+# 多重操作
+irisdf %>% mutate_if(is.numeric, list(scale, log))
+
+irisdf %>%mutate(across(is.numeric, list(scale = scale, log = log), .names = "{fn}_{col}"))
+
+irisdf %>% mutate_if(is.numeric, list(~ scale(.), ~ log(.))) # Purrr-style lambda 形式
+```
+
+## select_if
+```{r}
+si <- tibble(x=c(1,2,3), y=c("a", "b", "c"), z=c(0,0,0))
+
+si %>% select_if(~ n_distinct(.)>2) # 不重复值个数大于2
+
+# 条件写在list中, 多个条件用逻辑符连接, ~表示匿名函数
+si %>% select_if(list(~ (n_distinct(.)>2 && is.numeric(.))))
+
+# 或自定义函数
+to_want <- function(x) is.numeric(x) && sum(x) > 3
+
+df %>% select_if(to_want)
+```
+
+## summarise_if
+```{r}
+msleep <- ggplot2::msleep
+msleep %>%
+  group_by(vore) %>%
+  # summarise_if(is.numeric, ~mean(., na.rm = TRUE))
+  summarise_if(is.numeric, mean, na.rm = TRUE)
+```
+## fliter_all at
+filter_all()配合all_vars(), any_vars()函数
+```{r}
+# filter_all 对所有操作
+mtcars %>% filter_all(all_vars(.>2))
+mtcars %>% filter_all(any_vars(.>400))
+# filter_at对指定操作, 以d结尾的变量的任一都是2的倍数
+mtcars %>% filter_at(vars(starts_with("d")), any_vars((. %% 2) == 0))
+```
+## filter_if
+
+filter_if(.tbl, .predicate, .vars_predicate) 相对复杂点
+filter_if() 有三个参数：
+.tbl, 数据框
+.predicate, 应用在列上的函数，一般作为列的选择条件
+.vars_predicate, 应用在一行上的函数，通过 all_vars(), any_vars()返回值决定是否选取该行。
+```{r}
+mtcars %>% filter_if(~all(floor(.) == .), all_vars(.!=0))
+# 数值全部为整数的列，不能同时为0
+```
+
+## group_by_
+```{r}
+iris %>% group_by_if(is.factor) # 只要是因子
+```
+
+## group_split(), group_map(), group_modify()
+
+```{r}
+# 将分组的表按组拆开
+iris %>% dplyr::group_by(Species) %>%
+  dplyr::group_split()
+# 简写为
+iris %>% group_split(Species) # 返回的是列表
+```
+
+```{r}
+iris %>%
+  dplyr::group_split(Species) %>%
+  purrr::map(~ broom::tidy(lm(Petal.Length ~ Sepal.Length, data = .x)))
+
+iris %>%
+  dplyr::group_split(Species) %>%
+  purrr::map_df(~ broom::tidy(lm(Petal.Length ~ Sepal.Length, data = .x)))
+```
+数据框分割成list, 处理完后再合并成数据框，难道不觉得折腾么？ 为什么不直接点？ tidyverse不会让我们失望的，先看看group_map()
+
+```{r}
+iris %>%
+  dplyr::group_by(Species) %>%
+  dplyr::group_map(~ broom::tidy(lm(Petal.Length ~ Sepal.Length, data = .x)))
+
+iris %>%
+  dplyr::group_by(Species) %>%
+  dplyr::group_map(~ lm(Petal.Length ~ Sepal.Length, data = .x)
+  )
+```
+
+## group_modify()
+才是真正意义上的“数据框进、数据框出”
+```{r}
+iris %>%
+  dplyr::group_by(Species) %>%
+  dplyr::group_modify(~ broom::tidy(lm(Petal.Length ~ Sepal.Length, data = .x)))
+```
+
+函数	          说明	                 常用组合	                            返回值	             要求
+map()	      列表进、列表出	   df %>% group_split() %>% map()	               list
+map_df()	  列表进、数据框出   df %>% group_split() %>% map_df()              df
+group_map()	数据框进、列表出	 df %>% group_by() %>% group_map()	  返回list(list1, list2, …)特例list(df1, df2, …)
+group_modify()	数据框进、数据框出	df %>% group_by() %>% group_modify()	返回grouped tibble	    .f返回df
+walk	            列表进	     df %>% group_split() %>% walk()	            side effects	
+group_walk()	数据框进	       df %>% group_by() %>% group_walk()	          side effects
+
+
+```{r}
+# 批量出图
+mpg %>%
+  dplyr::group_split(class) %>%
+  purrr::map(
+    ~ ggplot(data = .x, aes(x = displ)) +
+      geom_density() +
+      ggtitle(.x$category)
+  )
+
+mpg %>%
+  dplyr::group_by(class) %>%
+  dplyr::group_map(
+    ~ ggplot(data = .x, aes(x = displ)) +
+      geom_density() +
+      ggtitle(.y)
+  )
+
+# nobel_winners %>%
+#   dplyr::group_by(category) %>%
+#   dplyr::group_walk(
+#     ~ ggsave(
+#       paste0(.y, ".png"),
+#       ggplot(data = .x, aes(x = prize_age)) +
+#         geom_density() +
+#         ggtitle(.y),
+#       device = "png",
+#       path = temp
+#     )
+#   ) %>%
+#   invisible()
+```
+
+## 其他group函数
+group_nest(), group_data(), group_keys(), group_rows()
+
+
+## 清理列名
+
+here::here("demo_data", "dirty_data.xlsx")
+返回此文件夹中此文件的绝对路径, 与工作路径有关
+
+```{r}
+library(readxl)
+library(janitor) # install.packages("janitor")
+roster_raw <- read_excel("C:/Users/fanhang/Desktop/Rdata/R_for_Data_Science/demo_data/dirty_data.xlsx")
+glimpse(roster_raw)
+
+# 清除列名
+roster <- roster_raw %>%
+  janitor::clean_names()
+
+glimpse(roster)
+```
+
+## 缺失值检查与处理
+```{r}
+airquality %>% summarise(across(everything(), ~sum(is.na(.))))
+
+airquality %>% dplyr::summarise_all(~ sum(is.na(.)))
+
+airquality %>% dplyr::summarise_at(2:3, ~ sum(is.na(.)))
+
+airquality %>% purrr::map(~ sum(is.na(.)))
+
+airquality %>% purrr::map_df(~ sum(is.na(.)))
+```
+## 缺失值替换
+```{r}
+airquality %>%
+  mutate_all(funs(replace(., is.na(.), 0)))
+
+airquality %>%
+  mutate_all(replace_na, replace = "uuu")
+
+airquality %>%
+  mutate_all(as.numeric) %>%
+  mutate_all(~ coalesce(., 0))
+
+tibble(
+  y = c(1, 2, NA, NA, 5),
+  z = c(NA, NA, 3, 4, 5)
+) %>%
+  mutate_all(~ coalesce(., 0))
+```
+## 标准化
+
+如果所有的列，都是数值型, 可以使用mutate_all
+或使用mutate_if()
+
+mtcars %>% mutate_if(is.numeric, ~ func(.))
+
+```{r}
+mttibb <- tibble(mtcars)
+mttibb %>% transmute_at(vars(mpg, disp), ~scale(.))
+
+mttibb %>% transmute_at(vars(mpg, disp), funs((.-mean(.))/sd(.)))
+
+
+func <- function(x) {(x - min(x)) / (max(x) - min(x))}
+mttibb %>%
+  mutate_at(vars(mpg, disp), ~ func(.))
+```
+
+
+
+
+
+
+
+```{r}
+y <- c(1, 2, NA, NA, 5)
+z <- c(NA, NA, 3, 4, 5)
+coalesce(y, z)
+```
+## across函数替代scope函数
+强大的across()函数，替代以上scope函数(_if, _at, 和 _all函数), 同时slice_max(), slice_min(), slice_n() 将替代 top_n()函数
+
+```{r}
+df <- mtcars
+df %>% mutate_if(is.numeric, mean, na.rm = TRUE)
+# ->
+df %>% mutate(across(is.numeric, mean, na.rm = TRUE))
+
+df %>% mutate_at(vars(mpg, starts_with("d")), mean, na.rm = TRUE)
+# ->
+df %>% mutate(across(c(mpg, starts_with("d")), mean, na.rm = TRUE))
+
+df %>% mutate_all(mean, na.rm = TRUE)
+# ->
+df %>% mutate(across(everything(), mean, na.rm = TRUE))
+```
+
+```{r}
+# weights
+df <- tibble(x = 1:3, y = 3:5, z = 5:7)
+df
+weights <- list(x = 0.2, y = 0.3, z = 0.5)
+
+df %>% dplyr::mutate(
+  across(all_of(names(weights)),
+    list(wt = ~ .x * weights[[cur_column()]]),
+    .names = "{col}.{fn}"
+  )
+)
+# across(starts_with("Petal"), list(min = min, max = max), .names = "{fn}_{col}")
+
+# cutoffs
+df <- tibble(x = 1:3, y = 3:5, z = 5:7)
+df
+
+cutoffs <- list(x = 2, y = 3, z = 7)
+
+df %>% dplyr::mutate(
+  across(all_of(names(cutoffs)), ~ if_else(.x > cutoffs[[cur_column()]], 1, 0))
+)
+
+
+# multiple
+df <- tibble(x = 1:3, y = 3:5, z = 5:7)
+mult <- list(x = 1, y = 10, z = 100)
+
+df %>% mutate(across(all_of(names(mult)), ~ .x * mult[[cur_column()]]))
+```
+## across函数
+数据框中向量方向，事实上可以看做有两个方向，横着看是row-vector，竖着看是col-vector。
+
+colwise: group_by() %>% summarise/mutate + across()
+rowwise: rowwise()/nest_by() %>% summarise/mutate + c_across()
+
+```{r}
+irisdf %>%mutate(across(is.numeric, list(scale = scale, log = log), .names = "{fn}_{col}"))
+```
+
+## 分位数
+```{r}
+mtcars %>% group_by(gear) %>% summarise(mpg = quantile(mpg, c(.2, .4, .6, .9)), q=c(.2, .4, .6, .9))
+```
+
+## group_by分组处理
+
+每次summarise会用掉最近的一个分组信息
+在summarise中使用.groups = "keep"进行保留
+
+```{r}
+mtcars %>%
+  group_by(cyl, vs) %>%
+  summarise(cyl_n = n(), .groups = "keep") %>%
+  group_vars()
+```
+
+.groups = "drop" 丢掉所有分组
+.groups = "rowwise" 变成行方向的分组
+
+## select通过列号选取
+```{r}
+mtcars %>% select(1,3)
+mtcars %>% select(1,3, hp, 5:7)
+
+# 通过函数选取
+mtcars %>% select(starts_with("x"))
+mtcars %>% select(contains("x"))
+mtcars %>% select(matches("wt"))
+
+# 通过类型
+mtcars %>% select(where(is.character))
+mtcars %>%select(where(is.numeric))
+
+# 重命名
+mtcars%>% rename(mppg = mpg)
+df %>% rename_with(toupper, is.numeric) # 对满足条件的进行函数操作
+mtcars %>% rename_with(str_to_title, is.numeric)
+
+# 行排序
+mtcars %>% arrange(desc(mpg))
+
+# 列排序
+mtcars %>% relocate(wt, .after = mpg) # 重调位置, 把wt放到mpg后
+mtcars %>% relocate(wt, .before = mpg)
+mtcars %>% relocate(wt, .after =last_col())
+```
+
+注意any与all
+```{r eval=FALSE, include=FALSE}
+vars <- c("x", "y", "z")
+df %>% select(all_of(vars))
+df %>% select(any_of(vars))
+```
+
+## across
+
+across(.cols = , .fns = )
+
+第一个参数.cols，选取我们要需要的若干列，选取多列的语法与select()的语法一致
+第二个参数.fns，我们要执行的函数（或者多个函数），函数的语法有三种形式可选：
+A function, e.g. mean.
+A purrr-style lambda, e.g. ~ mean(.x, na.rm = TRUE)
+A list of functions/lambdas, e.g. list(mean = mean, n_miss = ~ sum(is.na(.x))
+
+对指定列进行操作
+```{r}
+iris %>%
+  group_by(Species) %>%
+  summarise(
+    across(everything(), mean)
+  )
+
+iris %>%
+  group_by(Species) %>%
+  summarise(
+    across(is.numeric, mean)
+  )
+
+iris %>%
+  group_by(Species) %>%
+  summarise(
+    across(starts_with("Petal"), list(min = min, max = max))
+    # across(starts_with("Petal"), list(min = min, max = max), .names = "{fn}_{col}")
+  )
+```
+##  “current” group or “current” variable
+
+n(), 返回当前分组的多少行
+cur_data(), 返回当前分组的数据内容（不包含分组变量）
+cur_group(), 返回当前分组的分组变量（一行一列的数据框）
+across(cur_column()), 返回当前列的列名
+这些函数返回当前分组的信息，因此只能在特定函数内部使用，比如summarise() and mutate()
+
+```{r}
+df <- tibble(
+  g = sample(rep(letters[1:3], 1:3)),
+  x = runif(6),
+  y = runif(6)
+)
+
+df %>% 
+  group_by(g) %>%
+  summarise(
+    n = n()
+  )
+
+df %>%
+  group_by(x) %>%
+  summarise(
+    across(n())
+  )
+
+df %>%
+  group_by(g) %>%
+  summarise(
+    data = list(cur_group())
+  )
+
+mtcars %>%
+  group_by(cyl) %>%
+  summarise(
+    broom::tidy(lm(mpg ~ wt, data = cur_data()))  # 数据是当前分组数据
+  )
+
+wt <- c(x = 0.2, y = 0.8)
+
+df %>%
+  mutate(
+    across(c(x, y), ~ .x * wt[cur_column()]) # 当前分组的列名
+  )
+```
+## 行方向操作
+
+rowwise()工作原理类似与group_by()，是按每一行进行分组，然后按行（行方向）统计
+
+```{r}
+df <- tibble(id = letters[1:6], w = 10:15, x = 20:25, y = 30:35, z = 40:45)
+
+df %>%
+  pivot_longer(
+    cols = -id,
+    names_to = "variable",
+    values_to = "value"
+  ) %>%
+  group_by(id) %>%
+  summarize(
+    r_mean = mean(value)
+  )
+
+# 或使用rowwise()
+df %>%
+  rowwise() %>%
+  mutate(avg = mean(c(w, x, y, z)))
+# 变量太多, 使用c_across
+df %>%
+  rowwise(id) %>%
+  mutate(
+    avg = mean(c_across(w:z))
+  )
+
+df %>% rowwise(id) %>% transmute(mean(c_across(is.numeric)))
+```
+
+## 行列分组对比
+
+colwise
+
+df %>% 
+  group_by() %>% 
+  summarise / mutate(
+    across(is.numeric, mean)
+ )
+
+rowwise
+
+df %>% 
+  rowwise() %>% 
+  summarise / mutate(
+    m = mean(c_across(is.numeric))
+  )
+## 处理列表列
+即每一列都是列表的数据框
+
+```{r}
+tb <- tibble(
+  x = list(1, 2:3, 4:6),
+)
+
+tb %>% mutate(l = purrr::map_int(x, length))
+
+tb %>%
+  rowwise() %>%
+  mutate(l = length(x))
+```
+
+## 行方向建模
+```{r}
+mt <- mtcars %>% as_tibble()
+
+# 以cyl分组，计算每组中mpg ~ wt的线性模型的系数.
+# 形成列表列
+mtcars %>%
+  group_by(cyl) %>%
+  nest()
+```
+此时列表中的每个元素对应一个模型，我们需要依次提取每次模型的系数，列方向的做法是，借用purrr::map完成列表中每个模型的迭代
+```{r}
+mtcars %>%
+  group_by(cyl) %>%
+  nest() %>%
+  mutate(model = purrr::map(data, ~ lm(mpg ~ wt, data = .))) %>%
+  mutate(result = purrr::map(model, ~ broom::tidy(.))) %>%
+  unnest(result)
+```
+用purrr::map实现列表元素一个一个的依次迭代，从数据框的角度来看（数据框是列表的一种特殊形式），因此实质上就是一行一行的处理。所以，尽管purrr很强大，但需要一定学习成本，从解决问题的路径上也比较周折。
+
+行方向的做法
+事实上，分组建模后，形成列表列，这种存储格式，天然地符合行处理的范式，因此一开始就使用行方向分组（这里nest_by() 类似于 group_by()）
+
+```{r}
+mtcars %>%
+  nest_by(cyl) %>%
+  mutate(model = list(lm(mpg ~ wt, data = data))) %>%
+  summarise(broom::tidy(model))
+
+# or
+mtcars %>%
+  nest_by(cyl) %>%
+  summarise(
+    broom::tidy(lm(mpg ~ wt, data = data))
+  )
+```
+## 数据框进，数据框出
+
+至此，tidyverse框架下，实现分组统计中的数据框进，数据框输出， 现在有四种方法了
+
+```{r}
+mtcars %>%
+  group_nest(cyl) %>%
+  mutate(model = purrr::map(data, ~ lm(mpg ~ wt, data = .))) %>%
+  mutate(result = purrr::map(model, ~ broom::tidy(.))) %>%
+  tidyr::unnest(result)
+
+
+mtcars %>%
+  group_by(cyl) %>%
+  group_modify(
+    ~ broom::tidy(lm(mpg ~ wt, data = .))
+  )
+
+
+mtcars %>%
+  nest_by(cyl) %>%
+  summarise(
+    broom::tidy(lm(mpg ~ wt, data = data))
+  )
+
+
+mtcars %>%
+  group_by(cyl) %>%
+  summarise(
+    broom::tidy(lm(mpg ~ wt, data = cur_data()))
+  )
+
+# or
+mtcars %>%
+  group_by(cyl) %>%
+  summarise(broom::tidy(lm(mpg ~ wt)))
+```
+## broom
+主要提供如下三种结果整理函数
+
+tidy: 返回模型的统计结果的数据框；
+augment: 返回模型参数并增加预测和残差等模型结果；
+glance: 返回模型的一行重要结果，包含R^2、矫正后的R^2，以及剩余标准误差
+
+tidy() 提取模型输出结果的主要信息
+glance() 提取模型输出结果的完整信息
+augment() 模型输出的信息添加到建模用的数据集中
+
+```{r}
+lmfit <- lm(mpg ~ wt, mtcars)
+summary(lmfit)
+tidy(lmfit)
+augment(lmfit)
+glance(lmfit)
+```
+除模型结果外，broom还可以用于 t.test, cor.test和wilcox.test检验的结果提取。
+```{r}
+tt <- t.test(wt ~ am, mtcars)
+tidy(tt)
+
+wt <- wilcox.test(wt ~ am, mtcars)
+tidy(wt)
+
+chit <- chisq.test(xtabs(Freq ~ Sex + Class, data = as.data.frame(Titanic)))
+tidy(chit)
+#只有chisq.test检验可以使用augment函数
+augment(chit)
+```
+
+## gather() 和 pivot()
+```{r}
+plantH <- data.frame(Day = 1:5, A = c(0.7, 1.0, 1.5, 1.8, 2.2), B = c(0.5, 0.7, 0.9, 1.3, 1.8))
+
+plantH
+# 想要按种类分组并绘图 就必须将A和B放在一列
+##    Day A   B
+## 1   1 0.7 0.5
+## 2   2 1.0 0.7
+## 3   3 1.5 0.9
+## 4   4 1.8 1.3
+## 5   5 2.2 1.8
+# 变为
+# Day type height 
+# 1     A   0.7 
+# 2     A   1.0 
+# 3     A   1.5 
+# 4     A   1.8 
+# 5     A   2.2 
+# 1     B   0.5
+# 2     B   0.7
+# 3     B   0.9
+# 4     B   1.3
+# 1     B   5.8
+```
+gather()/pivot_longer it makes “wide” data longer.
+spread()/pivot_wider it makes “long” data wider.
+
+longer 只会生成两列, 一列名字, 一列数值
+
+```{r}
+long <- pivot_longer(plantH, col = 2:3,names_to = "type", values_to = "height")
+long <- pivot_longer(plantH, col = -Day, names_to = "type", values_to = "height")
+long %>% ggplot(aes(x=Day, y=height, color=type)) + geom_point(size=3)+geom_line(lwd=2)
+```
+反向
+```{r}
+wide <- long %>% pivot_wider(names_from = type, values_from = height)
+wide
+```
+```{r}
+lll <-  pivot_longer(mtcars, cols = 1:2,names_to = "aaa", values_to = "bbb")
+lll
+```
+
+## count
+```{r}
+df <- tibble(
+  name = c("Alice", "Alice", "Bob", "Bob", "Carol", "Carol"),
+  type = c("english", "math", "english", "math", "english", "math"),
+  score = c(60.2, 90.5, 92.2, 98.8, 82.5, 74.6)
+)
+
+df %>% count(name,
+  sort = TRUE,
+  wt = score, # 以score为权重
+  name = "total_score"
+)
+
+# count可创建新变量
+df %>% count(range = 10*score %/% 10)
+```
+
+## add_count
+
+加一列表示每人参加考试的次数
+```{r}
+# 先分组,计数, 在取消分组
+df2 <- df %>% group_by(name) %>% mutate(N = n()) %>% ungroup()
+# 或直接
+df %>% add_count(name)
+```
+
+## 位次函数
+first(), last(), nth()
+
+```{r}
+df %>%
+  arrange(desc(score)) %>% 
+  filter(score == first(score))
+```
+## if_else
+if_else(test, T, F)
+
+```{r}
+df %>% mutate(assess = if_else(score>90, "Good", "Bad"))
+```
+
+## case_when
+```{r}
+df %>% mutate(
+  assess=case_when(
+  score>=90~"Excellent",
+  score>=80&score<90~"Good",
+  score>=70&score<80~"Norm",
+  TRUE~"bad"
+))
+```
+## 找出前几名
+
+```{r}
+df %>% top_n(2, score)
+```
+
+## 去除多余空白
+str_trim 去除左右两端
+str_squish 去除所有位置多余的空格
+```{r}
+s <- " excess    whitespace in a string be gone!  "
+str_trim(s, side = "both")
+str_squish(s)
+```
+## 取反
+```{r}
+1:5 %in% c(3:6)
+
+# 自定义一个不属于操作符
+`%nin%` <- Negate(`%in%`)
+
+1:5 %nin% c(3:6)
+
+
+# 使用purrr::negate()自定义反向操作符
+`%nin%` <- purrr::negate(`%in%`)
+3:10 %nin% c(1:5)
+```
+
+## NA操作
+
+```{r}
+dt <- tribble(
+  ~x, ~y,
+  1, NA,
+  2, NA,
+  NA, -3,
+  NA, -4,
+  5, -5
+)
+
+dt %>% drop_na()
+
+dt %>% mutate(x=replace_na(x, "UUUUU"), y=replace_na(y, "AAAAA"))
+
+dt %>% pivot_longer(cols=1:2, names_to="AAA", values_to="BBB") %>% 
+  mutate(across("BBB",  ~replace_na(., "UUU"))) # 需要有~. 表示匿名函数
+
+    
+dt %>% mutate(
+  z = coalesce(x, 0))
+
+
+z = coalesce(dt$x, dt$y) # 用第二个向量对应位置的非NA填补第一个的NA
+z
+
+
+# 均值填充
+dt <- tribble(
+  ~name, ~age,
+  "a", 1,
+  "b", 2,
+  "c", NA,
+  "d", 2
+)
+
+dt %>%
+  mutate(
+    age_adj = ifelse(is.na(age), mean(age, na.rm = TRUE), age)
+  )
+```
+
+```{r}
+library(gapminder)
+gapminder %>%
+  group_by(continent) %>%
+  summarise(test = list(t.test(gdpPercap))) %>% # 单样本t检验
+  mutate(tidied = purrr::map(test, broom::tidy)) %>% # 对检验结果进行tidy
+  unnest(tidied) %>% #取消组合
+  ggplot(aes(estimate, continent)) + # 画图
+  geom_point() +
+  geom_errorbarh(aes(
+    xmin = conf.low,
+    xmax = conf.high
+  ))
+
+
+gapminder %>%
+  group_by(continent) %>%
+  summarise(test = list(lm(lifeExp ~ gdpPercap))) %>% # 线性回归
+  mutate(tidied = purrr::map(test, broom::tidy, conf.int = TRUE)) %>%
+  unnest(tidied) %>%
+  filter(term != "(Intercept)") %>% # 去除截距项
+  ggplot(aes(estimate, continent)) +
+  geom_point() +
+  geom_errorbarh(aes(
+    xmin = conf.low,
+    xmax = conf.high,
+    height = .3
+  ))
+
+# 或
+gapminder %>%
+  group_nest(continent) %>%
+  mutate(test = map(data, ~ t.test(.x$gdpPercap))) %>%
+  mutate(tidied = map(test, broom::tidy)) %>%
+  unnest(tidied)
+
+gapminder %>%
+  group_by(continent) %>%
+  group_modify(
+    ~ broom::tidy(t.test(.$gdpPercap))
+  )
+```
+
+## 画图四件套
+count() + fct_reorder() + geom_col() + coord_flip()
+```{r}
+gapminder %>%
+  distinct(continent, country) %>% # 去重
+  count(continent) %>% # 计数
+  ggplot(aes(x = continent, y = n)) +
+  geom_col() +# 条形图
+  coord_flip()
+
+# x = fct_reorder(continent, n)
+
+gapminder %>%
+  distinct(continent, country) %>% # 去重
+  count(continent) %>% # 计数
+  ggplot(aes(x = continent, y = n)) +
+  geom_col(aes(x = fct_reorder(continent, n))) +# 条形图
+  coord_flip()
+```
+
+```{r}
+gapminder %>%
+  distinct(continent, country) %>%
+  count(continent) %>% 
+
+  ggplot(aes(x = fct_reorder(continent, n), y = n)) +
+  geom_text(aes(label = n), hjust = -0.25) +
+  geom_col(width = 0.8, aes(fill = continent == "Asia") ) +
+  coord_flip() +
+  theme_classic() +
+  scale_fill_manual(values = c("#b3b3b3a0", "#D55E00")) +
+  annotate("text", x = 3.8, y = 48, label = "this is important\ncase", 
+           color = "#D55E00", size = 5) +
+  annotate(
+    geom = "curve", x = 4.1, y = 48, xend = 4.1, yend = 35, 
+    curvature = .3, arrow = arrow(length = unit(2, "mm"))
+  ) +
+  theme(legend.position = "none",
+        axis.text = element_text(size = 11)
+        ) +
+  labs(title = "我的标题", x = "")
+```
+## 坐标轴log转换
+
+```{r}
+gapminder %>% ggplot(aes(x=gdpPercap, y=lifeExp)) + geom_point()+
+  scale_x_log10()
+```
+
+## fct_lump
+```{r}
+tb <- tibble::tribble(
+  ~disease,  ~n,
+      "鼻塞", 112,
+      "流涕", 130,
+      "发热",  89,
+      "腹泻",   5,
+      "呕吐",  12,
+      "咳嗽", 102,
+      "咽痛",  98,
+      "乏力",  15,
+      "腹痛",   2,
+      "妄想",   3,
+      "幻听",   6,
+      "失眠",   1,
+      "贫血",   8,
+      "多动",   2,
+      "胸痛",   4,
+      "胸闷",   5
+  )
+
+p0 <- tb %>%
+  mutate(across(disease, ~as.factor(.))) %>% 
+  ggplot(aes(x=fct_reorder(disease, .x = n), y=n,fill=disease)) + geom_col() + geom_text(aes(label=n), vjust=-.25)+ coord_flip()
+
+p1 <- tb %>% uncount(n) %>%  ggplot(mapping=aes(x=fct_reorder(disease, .x = disease, .fun = length), fill=disease)) +geom_bar() + coord_flip()
+
+p2 <- tb %>% 
+  uncount(n) %>% 
+  mutate(
+    disease = forcats::fct_lump(disease, 8), # 合并柱子, 可识别的为8, 剩余的全并入other
+    disease = forcats::fct_reorder(disease, .x = disease, .fun = length)
+  ) %>% 
+  ggplot(aes(x = disease, fill = disease)) +
+  geom_bar() +
+  coord_flip() +
+  theme(legend.position = "none")
+p0+p1 + p2
+```
+
+## fct_reoder2
+让图例的顺序与图的曲线顺序一致
+
+```{r}
+dat_wide <- tibble(
+  x = 1:3,
+  top = c(4.5, 4, 5.5),
+  middle = c(4, 4.75, 5),
+  bottom = c(3.5, 3.75, 4.5)
+)
+
+
+dat_wide %>%
+  pivot_longer(
+    cols = c(top, middle, bottom),
+    names_to = "region",
+    values_to = "awfulness")
+
+dat <- dat_wide %>%
+  pivot_longer(
+    cols = c(top, middle, bottom),
+    names_to = "region",
+    values_to = "awfulness") %>%
+  mutate( # 用于color对比
+    region_ABCD = factor(region), 
+    region_sane = fct_reorder2(region, x, awfulness)
+  )
+
+p_ABCD <- ggplot(dat, aes(x, awfulness, colour = region_ABCD)) +
+  geom_line() + theme(legend.justification = c(1, 0.85))
+
+p_sane <- ggplot(dat, aes(x, awfulness, colour = region_sane)) +
+  geom_line() + theme(legend.justification = c(1, 0.85))
+
+p_ABCD + p_sane +
+  plot_annotation(
+    title = 'Make the legend order = data order, with forcats::fct_reorder2()')
+```
+
+## 字符列的合并与分割 unite
+```{r}
+dfa <- tribble(
+   ~school, ~class,
+  "chuansi", "01",
+  "chuansi", "02",
+  "shude", "07",
+  "shude", "08",
+  "huapulu", "101",
+  "huapulu", "103"
+)
+
+df_united <- dfa %>% 
+   tidyr::unite(school, class, col = "school_plus_class", sep = "_", remove = FALSE)
+# 或
+dfa %>% mutate(newcol = str_c(school, "_", class))
+
+# 分割
+df_united %>%
+  tidyr::separate(school_plus_class, into = c("sch", "cls"), sep = "_", remove = F)
+
+# 或
+df_united %>% 
+  mutate(sch = str_split(school_plus_class, "_") %>% map_chr(1)) %>% 
+  mutate(cls = str_split(school_plus_class, "_") %>% map_chr(2))
+
+# 多列
+dfb <- tribble(
+   ~school_class,
+  "chuansi_01",
+  "chuansi_02_03",
+  "shude_07_0",
+  "shude_08_0",
+  "huapulu_101_u",
+  "huapulu_103__p"
+)
+
+
+dfb %>% tidyr::separate(school_class, 
+                into = c("sch", "cls"), 
+                sep = "_", 
+                extra = "drop",
+                remove = F)
+
+dfc <- tibble(x = c("1-12week", "1-10wk", "5-12w", "01-05weeks"))
+
+dfc %>% tidyr::extract(
+  x,
+  c("start", "end", "letter"), "(\\d+)-(\\d+)([a-z]+)",
+  remove = FALSE
+)
+
+
+```
+## crossing
+
+```{r}
+tidyr::crossing(x = c("F", "M"), y = c("a", "b"), z = c(1:2))
+```
+
+```{r}
+sim <- tribble(
+  ~n_tosses, ~f, ~params,
+     10, "rbinom", list(size = 1, prob = 0.5, n = 15),
+     30, "rbinom", list(size = 1, prob = 0.5, n = 30),
+    100, "rbinom", list(size = 1, prob = 0.5, n = 100),
+   1000, "rbinom", list(size = 1, prob = 0.5, n = 1000),
+  10000, "rbinom", list(size = 1, prob = 0.5, n = 1e4)
+)
+sim_rep <- sim %>%
+  crossing(replication = 1:50) %>%
+  mutate(sims = invoke_map(f, params)) %>%
+  unnest(sims) %>%
+  group_by(replication, n_tosses) %>%
+  summarise(avg = mean(sims))
+sim_rep %>%
+  ggplot(aes(x = factor(n_tosses), y = avg)) +
+  ggbeeswarm::geom_quasirandom(color = "lightgrey") +
+  scale_y_continuous(limits = c(0, 1)) +
+  geom_hline(
+    yintercept = 0.5,
+    color = "skyblue", lty = 1, size = 1, alpha = 3 / 4
+  ) +
+  ggthemes::theme_pander() +
+  labs(
+    title = "50 Replicates Of Mean 'Heads' As Number Of Tosses Increase",
+    y = "mean",
+    x = "Number Of Tosses"
+  )
+```
+
+```{r}
+mean_rm <- . %>% mean(na.rm = T)
+
+c(1, 2, 3, NA) %>% mean_rm()
+
+# 等价于
+c(1, 2, 3, NA) %>% mean(., na.rm = T)
+
+```
+
+
+## 非标准性评估
+```{r}
+df1 <- mtcars
+```
+例如想对一个数据框按不同的分组计算不同的均值
+df1 %>% group_by(x1) %>% summarise(mean = mean(y1))
+df2 %>% group_by(x2) %>% summarise(mean = mean(y2))
+df3 %>% group_by(x3) %>% summarise(mean = mean(y3))
+df4 %>% group_by(x4) %>% summarise(mean = mean(y4))
+很自然的想到写一个函数
+data %>% group_by(group_var) %>% summarise(mean = mean(summary_var))
+
+grouped_mean <- function(data, group_var, summary_var) {
+  data %>%
+    group_by(group_var) %>%
+    summarise(mean = mean(summary_var))
+}
+
+```{r}
+grouped_mean <- function(data, group_var, summary_var) {
+  data %>%
+    group_by(group_var) %>%
+    summarise(mean = mean(summary_var))
+}
+
+# grouped_mean(mtcars, cyl, mpg)
+```
+
+但是运行时
+grouped_mean(mtcars, cyl, mpg)
+/## Error: Must group by variables found in `.data`.
+/## * Column `group_var` is not found.
+
+环境变量(env-variables) ，一般你在Rstuido右上角的Environment中发现它。比如n <- 10这里的n
+
+数据变量(data-variables)，一般指数据框的某个变量。比如data <- data.frame(x = 1, n = 2)中的data$n
+
+因为cyl, mpg本是作参数为环境变量传入的, 但我们期望他们在函数中当作mtcars中的数据变量，即当做mtcars的一个列的名字来使用
+
+将环境变量转为数据变量就要引用(quote)和解引用(unquote)
+
+即:
+第一步，用 enquo()把用户传递过来的参数引用起来（引用可以理解为冷冻起来）
+
+第二步，用 !! 解开这个引用（解引用可以理解为解冷），然后使用参数的内容
+数据变量（data-variable）遮盖了环境变量（env-variable），即数据遮盖（data masking），看到cyl，正常情况下，本来应该是到环境变量里去找这个cyl对应的值，然而，数据遮盖机制，插队了，让代码去数据变量中去找cyl以及对应的值。
+
+```{r}
+grouped_mean <- function(data, group_var, summary_var) {
+  group_var <- enquo(group_var)
+  summary_var <- enquo(summary_var)
+
+  data %>%
+    group_by(!!group_var) %>%
+    summarise(mean = mean(!!summary_var))
+}
+
+grouped_mean(mtcars, cyl, mpg)
+```
+
+```{r}
+# 对应多个
+sum_group_vars <- function(df, 
+                           group_vars, 
+                           sum_vars){
+  df %>% 
+    group_by(across({{ group_vars }})) %>% 
+    summarise(n = n(), 
+              across({{ sum_vars }}, 
+                     list(mean = mean, sd = sd))
+              )
+}
+
+sum_group_vars(mpg, c(model, year), c(hwy, cty))
+```
+
+## 处理多个参数
+
+传递更多的参数，可以用...代替group_var ，然后传递到group_by()
+
+```{r}
+grouped_mean <- function(data, summary_var, ...) {
+  summary_var <- enquo(summary_var)
+    group_var <- enquos(...)
+ 
+  data %>%
+    group_by(!!!group_var) %>%
+    summarise(mean = mean(!!summary_var))
+}
+
+# 指定统计参数disp，分组参数(cyl am)，然后运行代码,
+grouped_mean(mtcars, disp, cyl, am)
+```
+
+
+## 修改默认名
+```{r}
+my_summarise <- function(data, group_var, summarise_var) {
+  data %>%
+    group_by(across({{ group_var }})) %>%
+    summarise(across({{ summarise_var }}, mean, .names = "mean_{col}"))
+}
+
+my_summarise(starwars, species, height)
+```
+
+“按一个变量分组，对多个变量统计”。这种情况，我们就需要调整引用的表达式
+
+.group_var放分组的变量species
+... 放需要统计的多个变量height, mass，期望完成 mean(height), mean(mass)
+需要用purrr:map()配合调整表达式， 如
+
+```{r}
+grouped_mean4 <- function(.data, .group_var, ...) {
+  group_var <- enquo(.group_var)
+  summary_vars <- enquos(..., .named = TRUE)
+
+  # Wrap the summary variables with mean()
+  summary_vars <- purrr::map(summary_vars, function(var) {
+    expr(mean(!!var, na.rm = TRUE))
+  })
+
+  # Prefix the names with `avg_`
+  names(summary_vars) <- paste0("avg_", names(summary_vars))
+
+  .data %>%
+    group_by(!!group_var) %>%
+    summarise(!!!summary_vars)
+}
+
+grouped_mean4(starwars, species, height, mass)
+```
+
+```{r}
+df <- tibble(index = sample(letters[1:4], size = 100, replace = TRUE) )
+
+filter_which <- function(df, var, val) {
+	
+	which_var <- enquo(var)
+	which_val <- as_name(enquo(val))
+	
+	df %>% 
+		count(!!which_var) %>% 
+		filter(!!which_var ==  which_val) 
+	
+}
+
+
+df %>% 
+	filter_which(index, b)
+```
+
+```{r}
+tibble(
+  a = runif(1000, 0, 5),
+  b = 4 + rnorm(1000, mean = 3.2 * a, sd = 1)
+) %>%
+  ggplot(aes(x = a, y = b)) +
+  geom_point()
+```
+
+## 蒙特卡洛模拟估计π
+```{r}
+# set.seed(2019)
+n=1000
+
+point <- tibble("x"=runif(n), "y"=runif(n))
+point %>% ggplot(aes(x=x, y=y))+geom_point(aes(color=(x-.5)**2 + (y-.5)**2 < .25))
+pp <- point %>% mutate("inside" =(if_else(x**2 + y**2 < 1, 1, 0))) %>% rowid_to_column("N") %>% mutate("estimate"=4*cumsum(inside)/N) 
+pp %>% ggplot(aes(x=N, y=estimate))+geom_line(color="red")+geom_hline(yintercept = pi)
+tail(pp)
+```
+
+
+## 线性回归模型
+
+```{r}
+wages <- read_csv("./demo_data/wages.csv")
+```
+
+```{r}
+names(wages)
+wages %>% summarise(across(everything(),~sum(is.na(.))))
+wages %>% summarise_all(~sum(is.na(.)))
+wages %>% count(sex)
+
+wages %>% group_by(sex) %>% summarise("MH"=mean(height), ME=mean(earn))
+
+wages %>% group_by(sex) %>% ggplot(aes(x=earn, color=sex))+geom_density(lwd=2)
+
+
+```
+
+大家可以自行探索其他变量的情况。现在提出几个问题，希望大家带着这些问题去探索：
+
+长的越高的人挣钱越多？
+
+是否男性就比女性挣的多？
+
+影响收入最大的变量是哪个？
+
+怎么判定我们建立的模型是不是很好？
+
+```{r}
+# 收入和身高的关系
+
+wages %>% ggplot(aes(x=height, y=earn, color=sex)) + geom_point()
+
+model1 <- lm(earn~height, data=wages)
+# model1 是一个lm object
+names(model1)
+model1
+
+summary(model1)
+```
+```{r}
+# 模型运用
+wages %>% modelr::add_predictions(model1) %>%  # 添加预测列
+modelr::add_residuals(model1) # 添加残差列, 预测值与实际值之差
+
+wages %>% ggplot(mapping=aes(x=height, y=earn))+geom_point(aes(color=sex), alpha=.5)+geom_smooth(method = "lm", se = FALSE)
+```
+
+```{r}
+model2 <- lm(earn~height + ed, data=wages)
+
+
+summary(model2)
+wages %>% modelr::add_predictions(model2) %>% modelr::add_residuals(model2)
+
+```
+## 对比重要性
+```{r}
+# 先做标准化, 再对比系数的绝对值
+# 自定义一个不属于操作符
+`%nin%` <- Negate(`%in%`)
+
+fit <- wages %>% mutate_at(vars(earn, height, ed, age), scale) %>% 
+lm(earn ~ 1+height + ed + age, data = .) # +1是指有截距项, +0没有截距项, 强制过原点
+summary(fit)
+fit
+
+# 或比较t值
+fit2 <- wages %>% lm(earn ~ height + ed + age, data = .)
+summary(fit)
+summary(fit2)
+```
+
+tidyverse框架下，喜欢数据框的统计结果，因此，可用broom的tidy()函数将模型输出转换为数据框的形式
+
+```{r}
+broom::tidy(fit)
+summary(fit)
+```
+
+race变量就是数据框wages的一个分类变量，代表四个不同的种族。用分类变量做回归，本质上是各组之间的进行比较。
+
+```{r}
+ff <- wages %>% lm(earn~race, data=.)
+summary(ff)
+tidy(ff) # statistic指检验统计量
+
+```
+
+race_black去哪里了呢？
+事实上，race变量里有4组，回归时，选择black为基线，hispanic的系数，可以理解为由black切换到hispanic，引起earn收入的变化（效应）
+对 black 组的估计，earn = 28372.09 = 28372.09 截距项
+对 hispanic组的估计，earn = 28372.09 + -2886.79 = 25485.30
+对 other 组的估计，earn = 28372.09 + 3905.32 = 32277.41
+对 white 组的估计，earn = 28372.09 + 4993.33 = 33365.42
+
+
+
+查看t值发现hispanic最小, 影响最小, 让他来做基线
+
+## 因子变量回归
+```{r}
+wages_fac <- wages %>% mutate(race=factor(race, levels = c("hispanic", "white", "black", "other")))  %>%select(c("earn", "race"))
+
+fit_fac <- wages_fac %>% lm(earn~race, data=.)
+summary(fit_fac)
+tidy(fit_fac)
+```
+
+分类变量的线性回归本质上就是方差分析
+
+## 一个分类变量和一个连续变量
+```{r}
+wages %>% lm(earn~sex+height, data=.)
+```
+height = 879.424 当sex保持不变时，height变化引起的earn变化
+sexmale = 16874.158 当height保持不变时，sex变化(female变为male)引起的earn变化
+
+```{r}
+lm(earn ~ height + sex + race + ed + age, data = wages)
+lm(earn ~ ., data = wages) # 全部变量
+
+lm(earn ~ height + sex + race + ed, data = wages)
+lm(earn ~ . - age, data = wages) # 只去除age
+```
+
+# 交互项
+earn ~ height + sex + height:sex
+指
+earn=α + β1 height + β2 sex + β3 (height * sex) + ϵ
+
+
+对于分类变量, 会转换为虚拟变量, 
+如sex, male=1, female=0
+会将sex拆为两列虚拟变量
+sexmale和sexfemale
+
+公式也顺势变为
+female: earn=α + β1 * height + β2 * 0 + β3  * (height * 0) + ϵ
+            =α + β1 * height + ϵ
+male:   earn=α + β1 * height + β2 * 1 + β3 * (height * 1) + ϵ
+            =α + β1 * height + β2 + β3 * height + ϵ
+            = ( α + β 2 ) + ( β 1 + β 3 ) * height + ϵ
+
+事实上，对于男性和女性，截距和系数都不同，因此这种情形等价于，按照sex分成两组，男性算男性的斜率，女性算女性的斜率
+
+earn ~ height + height:sex 
+同理, 引入虚拟变量解释
+
+## predict vs fit
+fitted() , 模型一旦建立，可以使用拟合函数fitted()返回拟合值，建模和拟合使用的是同一数据
+predict()， 模型建立后，可以用新的数据进行预测，predict()要求数据框包含新的预测变量，如果没有提供，那么就使用建模时的预测变量进行预测，这种情况下，得出的结果和fitted()就时一回事了。
+predict()函数和fitted()函数不同的地方，还在于predict()函数往往带有返回何种类型的选项，可以是具体数值，也可以是分类变量
+
+## 相关与回归
+只有一个预测变量时
+相关系数的平方 和 线性模型的 R^2是相等的
+
+
+## 方差分析
+
+##单因素方差分析
+
+预测变量只有一个
+
+还如wages数据, 检验男的真的比女的收入高吗?
+即
+收入和性别之间有关系吗?
+
+```{r}
+wages <- read_csv("./demo_data/wages.csv")
+
+wages %>% 
+  head()
+```
+
+```{r}
+wages %>% t.test(earn~sex, data=.)
+
+# p-value < 2.2e-16 拒绝原假设, 认为收入与性别有关
+```
+```{r}
+lm(earn ~ sex, data = wages) %>% 
+  summary()
+# sexmale具有显著关系
+```
+```{r}
+aov(earn ~ sex, data = wages) %>% 
+  summary()
+```
+
+## 双因素方差分析
+```{r}
+# library("ggpubr")
+my_data <- ToothGrowth %>%
+  mutate_at(vars(supp, dose), ~ as_factor(.))
+
+my_data %>% head()
+```
+
+```{r}
+my_data %>%
+  ggplot(aes(x = supp, y = len, fill = supp)) +
+  geom_boxplot(position = position_dodge()) +
+  facet_wrap(vars(dose)) +
+  labs(title = "VC剂量和摄入方式对豚鼠牙齿的影响")
+```
+问题豚鼠牙齿的长度是否与
+药物的食用方法
+和剂量有关？
+
+与线性回归不同, 不在注重预测, 而是更看重分析不同组别之间的差异, 是为方差分析
+
+```{r}
+aov_tooth <- my_data %>% aov(len~supp+dose, data=.)
+aov_tooth %>% tidy()
+```
+检验表明不同类型之间存在显著差异，
+但是并没有告诉我们具体谁与谁之间的不同。需要多重比较帮助我们解决这个问题。使用TurkeyHSD函数
+
+```{r}
+aov_tooth %>% TukeyHSD(which="supp") %>% tidy()
+aov_tooth %>% TukeyHSD(which="dose") %>% tidy()
+```
+思考：交互效应是否显著？
+```{r}
+my_data %>% aov(len~supp*dose, data=.) %>% tidy()
+my_data %>% lm(len~supp*dose, data=.) %>% tidy()
+```
+
+## 统计检验与线性模型的等价性
+
+experim是一个模拟的数据集，这个虚拟的研究目的是，考察两种不同类型的干预措施对帮助学生应对即将到来的统计学课程的焦虑的影响。实验方案如下：
+
+首先，学生完成一定数量的量表(量表1)，包括对统计学课程的害怕(fost)，自信(confid)，抑郁(depress)指标
+
+然后，学生被等分成两组，组1 进行技能提升训练；组2进行信心提升训练。训练结束后，完成相同的量表(量表2)
+
+三个月后，他们再次完成相同的量表(量表3)
+
+也就说，相同的指标在不同的时期测了三次，目的是考察期间的干预措施对若干指标的影响。
+
+数据导入
+```{r}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+edata <- read_csv("./demo_data/Experim.csv")  
+
+head(edata)
+# 将分组标签化为1或2
+edata <- edata %>% mutate(group=if_else(group=="maths skills", 1,2)) %>%  # 再将sex, id, group置为因子型
+  mutate(across(c("sex", "id", "group"), ~as.factor(.)))
+glimpse(edata)
+```
+
+## t检验
+
+t检验常作为检验一群来自正态分配总体的独立样本之期望值是否为某一实数，或是二群来自正态分配总体的独立样本之期望值的差是否为某一实数。
+
+首先，我们想检验第一次测量的抑郁得分（depress1）的分布, t检验其均值是否为0
+```{r}
+t.test(edata$depress1, mu=0) # p很小, 拒绝原假设, 也可作密度图
+edata %>% ggplot(mapping=aes(x=depress1))+geom_density()
+```
+分别用t检验和回归做一下
+
+这个语法lm(y ~ 1)是不是感觉有点点怪怪的呢？左边是响应变量y，右边只有一个1，没有其他预测变量，这里的意思就是用截距预测响应变量y。事实上，也可以看作是检验y变量的均值是否显著偏离0.
+
+```{r}
+model_1_t <- t.test(depress1 ~ 1, data=edata)
+model_1_lm <- lm(depress1 ~ 1, data=edata)
+
+# 两者结果相同
+```
+
+
+```{r}
+# 使用broom组合结果
+# library(broom)
+
+model_1_t_tidy <- tidy(model_1_t) %>% mutate(model = "t.test(y)")
+model_1_lm_tidy <- tidy(model_1_lm) %>% mutate(model = "lm(y ~ 1)")
+
+results <- bind_rows(model_1_t_tidy, model_1_lm_tidy) %>%
+  select(model, estimate, statistic, p.value)
+results
+```
+## 配对t检验
+
+检验干预是否有效果, 即depress1 和 depres3是否有显著差异
+因为是有一批人, 所以是配对样本
+
+原假设是两者独立
+p<.05拒绝原假设
+配对t检验
+```{r}
+model_2_t <- t.test(edata$depress1, edata$depress3, paired = TRUE)
+model_2_t_tidy <- tidy(model_2_t) %>% mutate(model = "t.test(x, y, paired = TRUE")
+model_2_t
+```
+同样也可用线性回归
+将两者相减, 差的均值是否为0, 可见截距项特别明显, 即两者不独立
+```{r}
+model_2_lm <- lm(depress1 - depress3 ~ 1, data = edata)
+model_2_lm_tidy <- tidy(model_2_lm) %>% mutate(model = "lm(y-x ~ 1)")
+summary(model_2_lm)
+```
+```{r}
+results2 <- bind_rows(model_2_t_tidy, model_2_lm_tidy)
+results2
+```
+通过这个等价的线性模型，我们似乎可以窥探到配对样本t检验是怎么样工作的。 它depress1 和 depress3一一对应相减后得到新的一列，用新的一列做单样本t检验
+
+可对两者差做单样本t检验
+对两者差做截距项线性拟合
+
+结果都一样
+
+## 关联检验
+
+“pearson”, “kendall”, “spearman”
+
+皮尔逊相关检验
+```{r}
+model_cor <- cor.test(edata$depress1, edata$depress3, method="pearson") %>% tidy() %>% mutate(model = "cor")
+
+# 线性回归
+model_3_lm <- lm(depress3 ~ depress1, data = edata) %>% tidy() %>% mutate(model = "lm")
+
+bind_rows(model_cor, model_3_lm) %>% select(model, term, estimate, statistic, p.value)
+```
+因为，线性模型会不仅输出系数，而且还输出了模型的截距，因此两个模型的系数会不一样，但在 t-statistic 和 p.value 是一样的。
+
+## 单因素方差分析
+
+看同一情况下两组之间的差异是否显著
+```{r}
+model_aov <- aov(depress1~group, data=edata)
+a <- model_aov %>% tidy()
+# 同理, 用线性模型
+moedl_lm <- lm(depress1~group, data=edata)
+b <- moedl_lm %>% tidy()
+bind_rows(a,b) %>% select(is.numeric)
+```
+
+将aov给出F-statustic值的开方，那么就等于lm给出的t-statistic值
+
+在lm()中，是将group1视为基线, 依次比较其它因子水平（比如group2）与基线group1的之间的偏离，并评估每次这种偏离的显著性；
+
+而aov评估group变量整体是否有效应，即如果group中的任何一个因子水平都显著偏离基线水平，那么说明group变量是显著的
+
+也就说，aov给出了整体的评估；而lm给出了因子水平之间的评估。
+
+
+```{r}
+edata <- edata %>% mutate(dep_slope = depress1 - depress3)
+```
+
+## 单因素协变量分析
+
+方差分析是分析分类变量的, 单个分类变量是单因素, 多个是多因素
+
+此外, 若一个分类变量 + 一个或多个连续变量就构成了单因素协变量分析
+dep_slope = depress1 - depress3 是1和3之差, 考察分组变量和confid1自信得分连续变量会不会对depress的变化有用
+
+```{r}
+a <- aov(dep_slope~group+confid1, data=edata) %>% tidy() %>% mutate(model = "aov")
+
+b <- lm(dep_slope~group+confid1, data=edata) %>% tidy() %>% mutate(model = "lm")
+bind_rows(a,b)
+```
+
+将lm模型的confidence的统计值做平方计算，发现与aov的结果是一样样的  (-0.5758388)^2 = 0.3315903
+
+## 双因素方差分析
+
+考察组内性别差异是否会导致depression的变化，那么就需要双因素方差分析，而且两个预测子之间还有相互作用项。
+```{r}
+model_6_anova <- aov(dep_slope ~ group * sex, data = edata) %>% tidy() %>% mutate(model = "aov")
+model_6_lm <- lm(dep_slope ~ group * sex, data = edata) %>% tidy() %>% mutate(model = "lm")
+bind_rows(model_6_anova, model_6_lm)
+```
+aov评估的是 （这些变量作为整体），是否对Y产生差异；而lm 模型，我们评估的是分类变量中的某个因子水平是否与基线水平之间是否有著差异。
+
+当水平变多时, 相比于做统计检验，我倾向于线性模型，因为lm()除了给出变量作为整体是否对响应变量产生影响外，还提供了更多的因子之间的信息。
+
+```{r}
+edata %>%
+  mutate(`sex:group` = interaction(sex, group, sep = ":")) %>% 
+  ggplot(aes(
+    x = sex:group,
+    y = dep_slope,
+    colour = sex:group
+  )) +
+  geom_jitter(width = .2) +
+  geom_boxplot(width = .3, alpha = .2) +
+  labs(
+    y = "Depression difference",
+    title = "Depression difference between baseline and EOS",
+    subtitle = "Divided by intervention group and sex"
+  )
+```
+
+## 多层线性模型
+分组数据
+
+就是每一次观察，属于某个特定的组，比如考察学生的成绩，这些学生属于某个班级，班级又属于某个学校。有时候发现这种分组的数据，会给数据分析带来很多有意思的内容。
+
+一般情况下，不同的院系，制定教师收入的依据和标准可能是不同的。我们假定有一份大学教职员的收入清单，这个学校包括信息学院、外国语学院、社会政治学、生物学院、统计学院共五个机构，我们通过数据建模，探索这个学校的薪酬制定规则。
+
+```{r}
+create_data <- function() {
+  df <- tibble(
+    ids = 1:100,
+    department = rep(c("sociology", "biology", "english", "informatics", "statistics"), 20),
+    bases = rep(c(40000, 50000, 60000, 70000, 80000), 20) * runif(100, .9, 1.1),
+    experience = floor(runif(100, 0, 10)),
+    raises = rep(c(2000, 500, 500, 1700, 500), 20) * runif(100, .9, 1.1)
+  )
+  
+  df <- df %>% mutate(
+    salary = bases + experience * raises
+  )
+  df
+}
+```
+
+```{r}
+df <- create_data()
+df
+```
+薪酬制定规则一, 所有人起薪相同, 只与工作年薪有关, 增长率也相同
+
+salary = B + A * experience
+
+```{r}
+m1 <- lm(salary ~ experience, data = df) 
+m1 %>% tidy()
+df %>% add_predictions(m1) %>% ggplot(mapping=aes(x=experience, y=salary)) + geom_point() + geom_smooth(aes(x=experience, y=pred)) +  labs(x = "Experience", y = "Predicted Salary") + ggtitle("linear model Salary Prediction") + scale_colour_discrete("Department")
+```
+注意到，对每个教师来说，不管来自哪个学院的，系数α和β是一样的，是固定的，因此这种简单线性模型也称之为固定效应模型。
+ 
+ 薪酬制定规则二: 不同学院起薪不同, 但增长率相同
+ 
+ 截距会随所在学院不同而变化
+
+salary = Bi + A*experience
+
+Bi 有五个值, 对于五个学院
+这里模型中既有固定效应项又有变化效应项，因此称之为混合效应模型
+使用lmer函数  Fit Linear Mixed-Effects Models
+
+```{r}
+m2 <- lmer(salary ~ experience + (1 | department), data = df)
+# | 表示变化效应, 与1相乘
+m2
+
+broom.mixed::tidy(m2, effects = "fixed")
+broom.mixed::tidy(m2, effects = "ran_vals")
+broom.mixed::tidy(m2)
+
+df %>% add_predictions(m2) %>%
+  ggplot(aes(
+    x = experience, y = salary, group = department,
+    colour = department
+  )) +
+  geom_point()+
+  geom_line(aes(x = experience, y = pred))
+```
+薪酬制定规则三，不同的院系起始薪酬是相同的，但年度增长率不同。
+
+```{r}
+m3 <- lmer(salary ~ experience + (0 + experience | department), data = df)
+m3
+
+broom.mixed::tidy(m3, effects = "fixed")
+broom.mixed::tidy(m3, effects = "ran_vals")
+
+df %>% add_predictions(m3)%>%
+  ggplot(aes(
+    x = experience, y = salary, group = department,
+    colour = department
+  )) +
+  geom_point() +
+  geom_line(aes(x = experience, y = pred))
+
+```
+薪酬制定规则四，不同的学院起始薪酬和年度增长率也不同。
+
+```{r}
+m4 <- lmer(salary ~ experience + (1 + experience | department), data = df)
+m4
+broom.mixed::tidy(m4, effects = "fixed")
+broom.mixed::tidy(m4, effects = "ran_vals")
+
+df %>% add_predictions(m4)%>%
+  ggplot(aes(
+    x = experience, y = salary, group = department,
+    colour = department
+  )) +
+  geom_point() +
+  geom_line(aes(x = experience, y = pred))
+```
+
+不同的院系起薪不同，年度增长率也不同，我们得出了5组不同的截距和斜率，那么是不是可以等价为，先按照院系分5组，然后各算各的截距和斜率?
+
+分组各自回归，与这里的（变化的截距+变化的斜率）模型，不是一回事
+
+
+## 广义线性模型
+在受污染的岛屿附近，金枪鱼出现次数
+```{r}
+df <- read_rds("./demo_data/fish.rds")
+df
+```
+
+```{r}
+df %>%
+  ggplot(aes(x = pollution_level, y = number_of_fish)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+m0 <- lm(number_of_fish ~ pollution_level, data = df)
+summary(m0)
+
+# 线性关系不明显，而且被解释变量甚至出现了负值。
+```
+
+分布
+```{r}
+df %>%
+  ggplot(aes(x = number_of_fish)) +
+  geom_histogram()
+```
+
+## 泊松分布
+
+```{r}
+# 生成泊松数据
+generate_pois <- function(lambda_value) {
+  tibble(
+    lambda = as.character(lambda_value),
+    x = seq(1, 10),
+    d = dpois(x = x, lambda = lambda_value)
+  )
+}
+
+dt <- seq(0.1, 1.8, by = 0.2) %>% map_dfr(generate_pois)
+dt %>% ggplot(aes(x=x, y=d, color=lambda)) + geom_point() + geom_line()+scale_x_continuous(breaks=c(1:10))
+```
+
+变量代表单位时间或者区域事件发生的次数，服从泊松分布。泊松分布有什么特点？
+
+如同线性回归, 使用解释变量的线性组合来模拟正态分布的μ
+
+也用解释变量的线性组合模拟λ, 但是,λ不能为0, 也就不能这样模拟...
+
+## 解决
+用log( λi ) 代替  λi
+
+用解释变量的线性组合预测log( λi ) 
+ 
+使用glm(y ~ 1 + x, family = familytype(link = linkfunction), data = )
+
+formula: 被解释变量 ~ 解释变量
+family : 误差分布（和连接函数），family = poisson(link="log")
+data : 数据框
+
+```{r}
+m <- glm(number_of_fish ~ pollution_level,
+  family = poisson(link = "log"),
+  data = df
+)
+m
+broom::tidy(m)
+```
+模型为
+yi∼Poisson(λi)
+log(λi)=β0+β1 Xi
+
+
+yi∼Poisson(λi=exp(β0+β1 Xi))
+
+λ1 / λ0 =
+exp(β1+β1∗x1) / exp(β0+β1∗x0) =
+exp(β1(x1−x0))
+
+即计算当 xi 增加一个单位时，事件平均发生次数将会是原来的 exp(β1) 倍。
+
+```{r}
+coef(m)
+exp(coef(m)[2])
+exp(coef(m))
+```
+
+污染系数为0， 4.0036
+污染系数从0变到0.5, 引起 (1/exp(-3.1077*0.5) = 4.7)倍数的鱼数量下降.
+污染系数从0变到1, 引起 22.3704 倍数的鱼数量下降.
+
+## 拟合
+```{r}
+fitted(m) %>% 
+  head()
+```
+
+实质上就是 exp(β0+β1∗pollutionlevel)
+
+
+```{r}
+intercept <- coef(m)[1]
+beta <- coef(m)[2]
+
+df %>%
+  dplyr::mutate(theory_pred = fitted(m)) %>%
+  dplyr::mutate(
+    myguess_pred = exp(intercept + beta * pollution_level)
+  )
+```
+
+```{r}
+df %>%
+  dplyr::mutate(theory_pred = fitted(m)) %>%
+  ggplot(aes(x = pollution_level, y = theory_pred)) +
+  geom_point()
+```
+
+```{r}
+pred <- predict(m, type = "response", se = TRUE) %>% as.data.frame()
+pred %>% 
+  head()
+```
+
+
+```{r}
+df_pred <- df %>%
+  dplyr::mutate(
+    fit = pred$fit,
+    se_fit = pred$se.fit
+  )
+df_pred
+```
+
+
+```{r}
+real_df <-
+  tibble(
+    x = seq(0, 1, length.out = 100),
+    y = 4 * exp(-3.2 * x)
+  )
+
+df_pred %>%
+  ggplot(aes(x = pollution_level, y = number_of_fish)) +
+  geom_point() +
+  geom_pointrange(aes(
+    y = fit,
+    ymax = fit + se_fit,
+    ymin = fit - se_fit
+  ), color = "red") +
+  # geom_point(aes(y = fit + se_fit), color = "red") +
+  # geom_point(aes(y = fit - se_fit), color = "red") +
+  geom_line(data = real_df, aes(x = x, y = y), color = "black") +
+  labs(
+    title = "Number of fish counted under different pollution level",
+    x = "Pollution level",
+    y = "Number of fish counted"
+  )
+```
+
+
+## 更多模型
+```{r}
+x <- c(1, 2, 3, 4, 5)
+y <- c(1, 2, 4, 2, 6)
+
+regNId <- glm(y ~ x, family = gaussian(link = "identity"))
+regNlog <- glm(y ~ x, family = gaussian(link = "log"))
+regPId <- glm(y ~ x, family = poisson(link = "identity"))
+regPlog <- glm(y ~ x, family = poisson(link = "log"))
+regGId <- glm(y ~ x, family = Gamma(link = "identity"))
+regGlog <- glm(y ~ x, family = Gamma(link = "log"))
+regIGId <- glm(y ~ x, family = inverse.gaussian(link = "identity"))
+regIGlog <- glm(y ~ x, family = inverse.gaussian(link = "log"))
+dx <- tibble(
+  x = c(1, 2, 3, 4, 5),
+  y = c(1, 2, 4, 2, 6)
+)
+
+dx %>%
+  ggplot(aes(x = x, y = y)) +
+  geom_point()
+regNId <- glm(y ~ x, family = gaussian(link = "identity"), data = dx)
+regNId
+
+dx %>%
+  mutate(pred = predict(regNId, type = "response")) %>%
+  ggplot(aes(x = x, y = y)) +
+  geom_point() +
+  geom_line(aes(y = pred, group = 1))
+regPlog <- glm(y ~ x, family = poisson(link = "log"), data = dx)
+regPlog
+
+dx %>%
+  mutate(pred = predict(regPlog, type = "response")) %>%
+  ggplot(aes(x = x, y = y)) +
+  geom_point() +
+  geom_line(aes(y = pred, group = 1))
+regGId <- glm(y ~ x, family = Gamma(link = "identity"), data = dx)
+regGId
+
+dx %>%
+  mutate(pred = predict(regGId, type = "response")) %>%
+  ggplot(aes(x = x, y = y)) +
+  geom_point() +
+  geom_line(aes(y = pred, group = 1))
+```
+
+
+
+```{r}
+df_price <-
+  read_html("https://hangqing.zhuwang.cc/shengzhu/20190905/407978.html") %>%
+  html_node(".tabzj") %>%
+  html_table(header = T) %>% 
+  set_names(
+    c("region", "name", "price_today", "price_yestoday", "diff_last_day", "diff_last_week")
+    ) %>% 
+  mutate_at(vars(name), ~str_remove_all(., " ") ) %>% 
+  mutate_at(vars(name), ~if_else( name == "黑龙江", "黑龙江省", .))
+
+df_price %>% 
+  head()
+
+china <- st_read("./demo_data/chinamap_data/bou2_4p.shp") %>% 
+  st_set_crs(4326) %>% 
+  group_by(NAME) %>%
+  summarize()
+
+china_uni <- china %>% 
+  mutate( NAME = iconv(NAME, "GBK", "UTF-8") ) %>% 
+  mutate_at(vars(NAME), ~str_remove_all(., "自治区|回族|维吾尔|壮族") ) %>%
+  mutate_at(vars(NAME), ~str_trim(.))
+df <- left_join(china_uni, df_price, by = c("NAME" = "name"))
+ggplot(data = df) + 
+  geom_sf( aes(fill = price_today < 28), show.legend = FALSE) + 
+  geom_sf_text(aes(label = NAME),
+               size = 3
+               ) +
+  geom_sf_text(aes(label = price_today), 
+               size = 3,
+               #nudge_x = c(-0.4, 0.5, 0.7),
+               nudge_y = c(-1, -1, -1)
+               ) +
+  coord_sf(crs = 4326) +
+  ggtitle("全国猪肉价格地图")
+```
+
+## 有序逻辑回归
+
+二元logistic回归：Y为定类且为2个，比如是否购买(1购买；0不购买)
+多分类logistic回归：Y为定类且选项大于2个，比如总统候选人偏好(特朗普、希拉里、卢比奥)
+有序logistic回归：Y为定类且有序，幸福感(不幸福、比较幸福和非常幸福)
+
+人们在肯德基里点餐，一般都会买可乐，可乐有四种型号(small, medium, large or extra large)，选择何种型号的可乐会与哪些因素有关呢？是否购买了汉堡、是否购买了薯条，消费者的年龄等。我们这里考察的被解释变量，可乐的大小就是一个有序的值。
+
+问卷调查。问大三的学生是否申请读研究生，有三个选项：1不愿意，2有点愿意，3非常愿意。那么这里的被解释变量是三个有序的类别，影响读研意愿的因素可能与父母的教育水平、本科阶段学习成绩、经济压力等有关
+
+```{r}
+tb <- readr::read_rds("./demo_data/cfps.rds")
+head(tb)
+```
+```{r}
+tb %>% count(edu)
+tb %>% count(edu_f)
+tb %>% count(edu_m)
+```
+## 将大专及以上归为一类, >=5的全为5
+
+```{r}
+df <- tb %>% mutate(
+  across(
+    contains("edu"), 
+    ~case_when(
+      . %in% c(5,6,7,8)~5,
+      TRUE~.)))  # 公式~应与.配对出现
+# ~ if_else(. %in% c(5, 6, 7, 8), 5, .)
+```
+```{r}
+df %>% count(edu)
+```
+
+问题的提出： 
+- 学历上父母是否门当户对？ 
+- 父母的受教育程度对子女的受教育水平是正向影响？ 
+- 父亲和母亲谁的影响大？ 
+- 对男孩影响大？还是对女孩影响大？ 
+- 以上情况城乡有无差异？
+
+
+```{r}
+# 父母是否门当户对?
+df %>% summarise(edu_equal=sum(edu_f==edu_m), # 门当户对的
+                 n=n())  %>% 　#总数
+  mutate(FM_ratio=edu_equal/n)
+```
+## 父母学历对比
+
+```{r}
+df %>% count(edu_f, edu_m) %>% group_by(edu_m) %>% mutate(perp=n/sum(n)) %>% select(-n) %>% pivot_wider(names_from = edu_m, values_from=perp)
+
+df %>% count(edu_f, edu_m) %>% group_by(edu_m) %>% mutate(perp=n/sum(n)) %>% select(-n) %>% ggplot(aes(x=edu_f, y=edu_m, fill=perp))+geom_tile()
+
+df %>% count(edu_f, edu_m) %>% group_by(edu_m) %>% mutate(perp=n/sum(n)) %>% select(-n) %>% ggplot(aes(x=edu_f, y=edu_m, color=perp))+geom_point(aes(size=perp))+ ggthemes::theme_economist()
+```
+
+## 母亲的教育程度对子女的影响
+
+```{r}
+df %>% mutate(across(edu_m, ~as.factor(.))) %>% ggplot(aes(x=edu, y=edu_m, fill=edu_m))+geom_density_ridges()+scale_x_continuous(limits=c(0,6), breaks=(1:5))
+```
+
+
+
+
+```{r}
+tibble(x=c(0,1)) %>% ggplot(aes(x=x))+stat_function(fun="log")
+```
+
+```{r}
+df1 <- df %>%
+  dplyr::mutate(
+    across(c(edu, sex, urban), as.factor),
+    across(edu, ~ fct_inseq(., ordered = TRUE))
+  )
+
+mod_mass <- MASS::polr(edu ~ edu_f + edu_m + sex + num_siblings + urban,
+  data = df1,
+  method = c("logistic")
+)
+
+summary(mod_mass)
+```
+
+```{r}
+library(equatiomatic)
+extract_eq(mod_mass, use_coefs = TRUE)
+```
+$$
+\begin{aligned}
+\log\left[ \frac { P( \operatorname{1} \geq \operatorname{2} ) }{ 1 - P( \operatorname{1} \geq \operatorname{2} ) } \right] &= -0.84 + 0.46(\operatorname{edu\_f}) + 0.51(\operatorname{edu\_m}) - 0.46(\operatorname{sex}_{\operatorname{1}}) - 0.15(\operatorname{num\_siblings}) + 0.96(\operatorname{urban}_{\operatorname{1}}) + \epsilon \\
+\log\left[ \frac { P( \operatorname{2} \geq \operatorname{3} ) }{ 1 - P( \operatorname{2} \geq \operatorname{3} ) } \right] &= 0.67 + 0.46(\operatorname{edu\_f}) + 0.51(\operatorname{edu\_m}) - 0.46(\operatorname{sex}_{\operatorname{1}}) - 0.15(\operatorname{num\_siblings}) + 0.96(\operatorname{urban}_{\operatorname{1}}) + \epsilon \\
+\log\left[ \frac { P( \operatorname{3} \geq \operatorname{4} ) }{ 1 - P( \operatorname{3} \geq \operatorname{4} ) } \right] &= 2.51 + 0.46(\operatorname{edu\_f}) + 0.51(\operatorname{edu\_m}) - 0.46(\operatorname{sex}_{\operatorname{1}}) - 0.15(\operatorname{num\_siblings}) + 0.96(\operatorname{urban}_{\operatorname{1}}) + \epsilon \\
+\log\left[ \frac { P( \operatorname{4} \geq \operatorname{5} ) }{ 1 - P( \operatorname{4} \geq \operatorname{5} ) } \right] &= 3.55 + 0.46(\operatorname{edu\_f}) + 0.51(\operatorname{edu\_m}) - 0.46(\operatorname{sex}_{\operatorname{1}}) - 0.15(\operatorname{num\_siblings}) + 0.96(\operatorname{urban}_{\operatorname{1}}) + \epsilon
+\end{aligned}
+$$
+
+```{r}
+coef(mod_mass) %>% exp()
+```
+
+在其它因素不变的情况下，父亲教育程度每增加一个等级（比如，大专到本科）， 会增加子女教育程度向上提高一个级别的概率1.58倍，也就是增加了58%。
+在其它因素不变的情况下，母亲教育程度每提高一个等级，会增加提升子女教育水平的概率1.66倍.
+从子女的性别差异来看, 在其它因素不变的情况下，女性的受教育水平向上提高一个级别的概率更大，是男性的(1/0.630)倍，或者说，男性受教育水平向上提高一个级别的概率比女性减少37%(1 - 0.63).
+从城乡差异来看，城镇子女提升教育水平的概率是农村的2.6倍
+
+```{r}
+library(margins)
+# me_mass <- marginal_effects(mod_mass, variables = "sex")
+me_mass <- marginal_effects(mod_mass, variables = "edu_m")
+me_mass %>% 
+  head()
+```
+```{r}
+library(ordinal)
+mod_ordinal <- clm(edu ~ edu_f + edu_m + sex + num_siblings + urban,
+  data = df1,
+  link = "logit",
+  thresholds = "flexible"
+)
+
+broom::tidy(mod_ordinal)
+```
+
+## 机器学习
+```{r}
+# library(tidymodels)
+```
+
+```{r}
+penguins <- read_csv("./demo_data/penguins.csv") %>%
+  janitor::clean_names() %>% 
+  drop_na()
+
+penguins %>%
+  head()
+penguins %>%
+  ggplot(aes(x = bill_length_mm, y = bill_depth_mm, 
+             color = species, shape = species)
+         ) +
+  geom_point()
+```
+
+```{r}
+split <- penguins %>% 
+  mutate(species = as_factor(species)) %>% 
+  mutate(species = fct_lump(species, 1)) %>% 
+  initial_split() # 初始化分组
+
+training_data <- training(split)
+testing_data <- testing(split)
+```
+
+## 模型
+
+```{r}
+# 1 model_logistic
+model_logistic <- parsnip::logistic_reg() %>% 
+  set_engine("glm") %>% 
+  set_mode("classification") %>% 
+  fit(species ~ bill_length_mm + bill_depth_mm, data = training_data)
+
+
+bind_cols(
+  predict(model_logistic, new_data = testing_data, type = "class"),
+  predict(model_logistic, new_data = testing_data, type = "prob"),
+  testing_data
+)
+
+
+predict(model_logistic, new_data = testing_data) %>% 
+  bind_cols(testing_data) %>% 
+  count(.pred_class, species)
+```
+
+```{r}
+# K 近邻
+
+model_neighbor <- parsnip::nearest_neighbor(neighbors = 10) %>% 
+  set_engine("kknn") %>% 
+  set_mode("classification") %>% 
+  fit(species ~ bill_length_mm, data = training_data)
+
+predict(model_neighbor, new_data = testing_data) %>% 
+  bind_cols(testing_data) %>% 
+  count(.pred_class, species)
+```
+
+```{r}
+model_multinom <- parsnip::multinom_reg() %>% 
+  set_engine("nnet") %>% 
+  set_mode("classification") %>% 
+  fit(species ~ bill_length_mm, data = training_data)
+
+predict(model_multinom, new_data = testing_data) %>% 
+  bind_cols(testing_data) %>% 
+  count(.pred_class, species)
+```
+
+```{r}
+model_decision <- parsnip::decision_tree() %>% 
+  set_engine("rpart") %>% 
+  set_mode("classification") %>% 
+  fit(species ~ bill_length_mm, data = training_data)
+
+predict(model_decision, new_data = testing_data) %>% 
+  bind_cols(testing_data) %>% 
+  count(.pred_class, species)
+```
+
+## 探索性数据分析-诺奖获得者
+
+数据准备（对数据要做到心中有数）
+
+描述变量
+数据结构
+缺失值及其处理
+数据探索（围绕探索的目标）
+
+数据规整
+可视化
+建模
+
+```{r}
+# library(tidyverse)
+# library(lubridate)
+df <- read_csv("./demo_data/nobel_winners.csv")
+df
+```
+
+```{r}
+df %>% map_df(~ sum(is.na(.)))
+```
+你想关心哪些问题，可能是
+
+- 每个学科颁过多少次奖？
+- 这些大神都是哪个年代的人？
+- 性别比例
+- 平均年龄和获奖数量
+- 最年轻的诺奖获得者是谁？
+- 中国诺奖获得者有哪些？
+- 得奖的时候多大年龄？
+- 获奖者所在国家的经济情况？
+- 有大神多次获得诺贝尔奖，而且在不同科学领域获奖？
+- 出生地分布？工作地分布？迁移模式？
+- GDP经济与诺奖模型？
+- 诺奖分享情况？
+
+```{r}
+ # If you want the heights of the bars to represent values in the data,use geom_col()
+df %>% count(category) %>% 
+  ggplot(aes(x=fct_reorder(category, n), y=n, fill=category)) + 
+  geom_col(fill = c("#003f5c", "#444e86", "#955196", "#dd5182", "#ff6e54", "#ffa600")) +
+  labs(title = "不同学科诺贝奖获奖次数对比", x = "学科", y = "数量") + 
+  geom_text(aes(label = n), vjust = -.25)
+```
+
+```{r}
+library(gganimate) # install.packages("gganimate", dependencies = T)
+
+df %>%
+  count(category) %>%
+  mutate(category = fct_reorder(category, n)) %>%
+  ggplot(aes(x = category, y = n)) +
+  geom_text(aes(label = n), vjust = -0.25) +
+  geom_col(fill = c("#003f5c", "#444e86", "#955196", "#dd5182", "#ff6e54", "#ffa600")) +
+  labs(title = "不同学科诺贝奖获奖次数对比", x = "学科", y = "数量") +
+  theme(legend.position = "none")
+  # transition_states(category) +
+  # shadow_mark(past = TRUE)
+```
+
+## 中国
+```{r}
+df %>%
+  dplyr::filter(birth_country == "China") %>%
+  dplyr::select(full_name, prize_year, category)
+```
+
+去重
+```{r}
+df %>%
+  mutate_if(is.character, tolower) %>%
+  distinct_at(vars(full_name, prize_year, category), .keep_all = TRUE) %>%
+  mutate(
+    decade = 10 * (prize_year %/% 10),
+    prize_age = prize_year - year(birth_date)
+  )
+```
+
+```{r}
+df %>% count(full_name, sort = T)
+```
+
+年龄
+```{r}
+df %>% mutate(prize_age = prize_year - year(birth_date))
+
+nobel <- df %>%
+  mutate_if(is.character, tolower) %>%
+  distinct_at(vars(full_name, prize_year, category), .keep_all = TRUE) %>%
+  mutate(
+    decade = 10 * (prize_year %/% 10),
+    prize_age = prize_year - year(birth_date)
+  )
+
+nobel
+```
+
+```{r}
+nobel %>% count(prize_age) %>% ggplot(aes(x=prize_age, y=n)) + geom_col()+scale_x_continuous(breaks=seq(0,100,5))
+```
+
+平均年龄
+```{r}
+nobel %>% group_by(category) %>% summarise(mean_age = mean(prize_age, na.rm=T))
+```
+
+```{r}
+nobel %>%
+  mutate(category = fct_reorder(category, prize_age, median, na.rm = TRUE)) %>%
+  ggplot(aes(category, prize_age)) +
+  geom_point() +
+  geom_boxplot() +
+  coord_flip()
+```
+
+```{r}
+nobel %>%
+  dplyr::filter(!is.na(prize_age)) %>%
+  group_by(decade, category) %>%
+  summarize(
+    average_age = mean(prize_age),
+    median_age = median(prize_age)
+  ) %>%
+  ggplot(aes(decade, average_age, color = category)) +
+  geom_line()
+```
+
+```{r}
+nobel %>% ggplot(aes(x=prize_age, y=category, fill=category))+geom_density_ridges()
+```
+
+```{r}
+nobel %>% ggplot(aes(x=prize_age, fill=category))+geom_density()+facet_wrap(~category)
+```
+group_by, group_map
+```{r}
+nobel_winners %>%
+  group_by(category) %>%
+  group_map(
+    ~ ggplot(data = .x, aes(x = prize_age)) +
+      geom_density() +
+      ggtitle(.y)
+  )
+```
+```{r}
+nobel_winners %>%
+  dplyr::filter(laureate_type == "individual") %>%
+  # mutate(decade = glue::glue("{round(prize_year - 1, -1)}s")) %>%
+  count(decade, category, gender) %>%
+  group_by(decade, category) %>%
+  mutate(prop = n / sum(n)) %>%
+  ggplot(aes(decade, category, fill = prop)) +
+  geom_tile(size = 0.7) +
+  # geom_text(aes(label = scales::percent(prop, accuracy = .01))) +
+  geom_text(aes(label = scales::number(prop, accuracy = .01))) +
+  facet_grid(vars(gender)) +
+  scale_fill_gradient(low = "#FDF4E9", high = "#834C0D")
+```
+
+清理国家名
+```{r}
+nobel_clean <- nobel %>%
+  mutate_at(
+    vars(birth_country, death_country),
+    ~ ifelse(str_detect(., "\\("), str_extract(., "(?<=\\().*?(?=\\))"), .)
+  ) %>%
+  mutate_at(
+    vars(birth_country, death_country),
+    ~ case_when(
+      . == "scotland" ~ "united kingdom",
+      . == "northern ireland" ~ "united kingdom",
+      str_detect(., "czech") ~ "czechia",
+      str_detect(., "germany") ~ "germany",
+      TRUE ~ .
+    )
+  ) %>%
+  select(full_name, prize_year, category, birth_date, birth_country, gender, organization_name, organization_country, death_country)
+```
+
+插入颜色列
+```{r}
+nobel_clean %>%
+  mutate(
+    colour = case_when(
+      death_country == "united states of america" ~ "#FF2B4F",
+      death_country == "germany" ~ "#fcab27",
+      death_country == "united kingdom" ~ "#3686d3",
+      death_country == "france" ~ "#88398a",
+      death_country == "switzerland" ~ "#20d4bc",
+      TRUE ~ "gray60"
+    )
+  ) %>% 
+    ggplot(aes(
+    x = 0,
+    y = fct_rev(factor(birth_country)),
+    xend = death_country,
+    yend = 1,
+    colour = colour,
+    alpha = (colour != "gray60")
+  )) +
+  geom_curve(
+    curvature = -0.5,
+    arrow = arrow(length = unit(0.01, "npc"))
+  ) +
+  scale_x_discrete() +
+  scale_y_discrete()+
+  scale_color_identity() +
+  scale_alpha_manual(values = c(0.1, 0.2), guide = F) +
+  scale_size_manual(values = c(0.1, 0.4), guide = F) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.background = element_rect(fill = "#F0EFF1", colour = "#F0EFF1"),
+    legend.position = "none",
+    axis.text.x = element_text(angle = 40, hjust = 1)
+  )
+```
+
+## 新冠疫情
+```{r}
+d <- read_csv("./demo_data/time_series_covid19_confirmed_global.csv")
+d
+```
+```{r}
+d1 <- d %>%
+  pivot_longer(
+    cols = 5:ncol(.),
+    names_to = "date",
+    values_to = "cases"
+  ) %>%
+  mutate(date = lubridate::mdy(date)) %>%
+  janitor::clean_names() %>%
+  group_by(country_region, date) %>%
+  summarise(cases = sum(cases)) %>%
+  ungroup()
+
+d1
+```
+
+```{r}
+d1 %>%
+  group_by(date) %>%
+  summarise(confirmed = sum(cases))
+```
+```{r}
+d1 %>%
+  group_by(date) %>%
+  summarise(confirmed = sum(cases)) %>%
+  ggplot(aes(x = date, y = confirmed)) +
+  geom_line() +
+  scale_x_date(
+    date_labels = "%m-%d"
+  ) +
+  scale_y_continuous(
+    labels = scales::comma
+  )
+```
+```{r}
+d1 %>%
+  filter(country_region == "US") %>%
+  ggplot(aes(x = date, y = cases)) +
+  geom_point()
+```
+
+```{r}
+d1$country_region
+```
+

@@ -1,0 +1,110 @@
+---
+title: "tinymodels"
+author: "finehang"
+date: "2020/9/15"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, dpi=300, warning=F, message=F, fig.width = 8, fig.asp = 0.618)
+virtualenv_create("fmri-proj")
+use_virtualenv("fmri-proj")
+
+# theme_set(theme_())
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+mtcars %>% ggplot(mapping=aes(x=mpg, y=cyl))+geom_col(aes(color = hp))
+```
+```{r}
+cock <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-26/boston_cocktails.csv")
+```
+
+```{r}
+cock %>% count(ingredient, sort=T) %>% view()
+```
+
+数据清理
+```{r}
+cock_clean <- cock %>% mutate(ingredient = str_to_lower(ingredient),
+                ingredient = str_replace_all(ingredient, "-", " "),
+                ingredient = str_remove(ingredient, " liqueur"),
+                ingredient = case_when(str_detect(ingredient, "bitters")~"bitters",
+                                       str_detect(ingredient, "light cream")~"light cream",
+                                       str_detect(ingredient, "orange")~"orange juice",
+                                       str_detect(ingredient, "lemon")~"lemon juice",
+                                       str_detect(ingredient, "lime")~"lime juice",
+                                       str_detect(ingredient, "grapefruit")~"grapefruit juice",
+                                       TRUE ~ ingredient),
+                measure = case_when(str_detect(ingredient, "bitters")~str_replace(measure, "oz$", "dash"),
+                                    TRUE~measure),
+                measure = str_replace(measure, " ?1/2", ".5"),
+                measure = str_replace(measure, " ?1/4", ".25"),
+                measure = str_replace(measure, " ?3/4", ".75"),
+                measure_number = parse_number(measure),
+                measure_number = if_else(str_detect(measure, " dash$"), measure_number/50, measure_number)
+                ) %>% add_count(ingredient) %>% filter(n>15) %>% select(-n) %>% distinct(row_id, ingredient, .keep_all = T) %>% na.omit()
+```
+
+```{r}
+cock %>% count(ingredient, measure, measure_number, sort = T)
+```
+```{r}
+cock_df <- cock_clean %>% select(-row_id, -ingredient_number, -measure) %>% pivot_wider(names_from = ingredient, values_from = measure_number, values_fill=0) %>% janitor::clean_names()
+```
+
+```{r}
+library(tidymodels)
+
+pca_rec <- recipe(~., data=cock_df) %>% 
+  update_role(name, category, new_role="id") %>% 
+  step_normalize(all_predictors()) %>% 
+  step_pca(all_predictors())
+
+pca_prep <- prep(pca_rec)
+```
+
+```{r}
+tidied_pca <- tidy(pca_prep, 2) # 选pca_rec被prep的第二步step_pca
+tidied_pca %>% filter(component %in% paste0("PC", 1:5)) %>% mutate(component = fct_inorder(component)) %>% ggplot(mapping=aes(x=value, y=terms, color = terms))+geom_col(show.legend = F)+facet_wrap(~component, nrow=1)+labs(y=NULL)
+
+juice(pca_prep)
+```
+```{r}
+tibble(a=c(-5:5)) %>% ggplot(aes(x=a, y=1/(1+exp(-a))))+curve()
+```
+
+
+```{python}
+a=1
+```
+
+
+```{r}
+import numpy as np
+```
+
+
+
+
+

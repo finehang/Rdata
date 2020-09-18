@@ -1,0 +1,824 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+## 数据结构
+### 类型
+character 字符型
+numeric 数值型,实数或小数
+integer 整型
+complex 复数
+bool 布尔型
+
+### 结构
+向量,vector
+因子,factor
+矩阵,matrix
+数据框,dataframe
+数组,array
+列表,list
+
+### 向量
+```{r}
+a <- c(10:20)
+a
+(seq(from=1, to=10,  along.with=a)) # by=1
+(seq(from=1, to=10,  length.out=20)) # by=1
+```
+取子集
+```{r}
+a[1:5] # 取1-5
+a[-5:-1] # 不取1-5
+(which(a>15)) # 返回索引
+a[which(a>15)]
+```
+
+### 因子
+有level及其标签
+factor()
+gl()
+```{r}
+blood <- c("a", "a", "b", "ab", "ab", "o", "o")
+(bloodFactor <- factor(blood))
+(bloodFactor <- factor(blood, levels = c("a", "b", "ab", "o"), labels = c(1,2,3,4))) # 指定levels,以字符向量, labels替换显示原有字符
+(gl(5,2,labels = c("A", "B", "C", "D", "E"))) # 5五个水平,每个重复2次
+```
+
+### 矩阵
+```{r}
+ma <- matrix(rnorm(16,0,1), nrow = 4, byrow = T)
+ma
+rownames(ma) <- c(1,2,3,4)
+colnames(ma) <- c(5,6,7,8)
+mb <- matrix(rnorm(16,0,2), nrow = 4)
+rownames(mb) <- c(1,2,3,4)
+colnames(mb) <- c(5,6,7,8)
+(ma + mb) # 对应相加
+(ma * mb) # 对应相乘
+(ma %*% mb) # 矩阵乘法
+solve(ma) %*% ma # solve求逆矩阵
+solve(ma, c(1,2,3,4)) # 解线性方程组
+
+m1 <- cbind(c(1:10), c(11:20)) # 列拼
+m1
+m2 <- rbind(c(1:10), c(11:20))# 行拼
+m2
+```
+
+### 对角矩阵
+```{r}
+diag(4)
+diag(c(1,2,3,4,5))
+diag(matrix(1:16,4)) # 提取对角线元素
+```
+
+### 数据框
+
+data.frame()创建
+$与[[]]访问
+attach()与detach()
+with()与within() with不改变原值,within改变
+subset()取子集
+
+```{r}
+data <- data.frame(fx = rnorm(10), fy = runif(10), f = c(1:10))
+data[["fy"]] # 取出的是数据框元素自己的结构
+class(data["fy"]) # 取出的还是数据框
+data$fy # 直接使用$比较好
+data$fy[1] # fy变量的第一个观测
+
+
+# attach()将对象添加进搜索路径, 应与detach()联合使用
+attach(data)
+search() # 查看现有搜索路径
+detach(data)
+search()
+
+with(data, {fx=c(51:60)}) # 对data只读
+data$fx
+within(data, {fx=c(51:60)})$fx # 可对data读写
+
+data$add <- data$fx + data$fy # 直接添加add变量
+
+
+subset(data, fx>0 & fy <0.5, select = c(fy, f)) # 按条件过滤
+
+# edit()与fix()
+```
+### 列表与数组
+
+```{r}
+a <- list(X=c(1:10), Y=matrix(1:16,4), Z=data.frame(A=c(1:5), B=c(6:10)))
+names(a)
+a$Z
+
+
+d <- array(1:60, c(3,4,5)) # 三行四列五个
+d
+```
+
+### 类型转换
+安全级别: 字符>数字>布尔 由低向高转不会出错, 数字转字符肯定不会出错,但字符转数字就可能出错
+
+```{r}
+x <- c(1:5, "hello", TRUE)
+x # 全被强制转化为较安全的字符型
+y <- matrix(1:6,3)
+y
+mode(y) # 查看数据类型
+class(y) # 查看数据结构
+y1 <- as.data.frame(y) #转为数据框
+y1
+```
+
+## 流程控制
+### 分支结构
+ if(...){
+ ...
+ }else{
+ ...
+ }
+
+ if...else...结构
+
+ ifelse(b, u, v)函数, 支持向量化计算 第一参数为测试条件,T输出第二参数,F输出第三参数
+
+```{r}
+brand <- paste(c("Brand"), 1:9, sep = "")
+pName <- paste("DELL", 1:9, sep = " ")
+mem <- rep(c("1G", "2G", "4G"), 3)
+feq <- rep(c("2.2G", "2.8G", "3.2G"), each=3)
+price <- rep(c(1000, 2000, 5000), 3)
+PC <- data.frame(brand, pName, mem, feq, price)
+PC
+
+# 高于3000打上Expensive标签,低于为Cheap标签
+for(i in 1:nrow(PC)){
+  if (PC$price[i]>3000){ # 字符型数字可以和数值比较,"10">5为TRUE
+    PC$tag[i] = "Expensive"
+  }else{
+    PC$tag[i] = "Cheap"
+  }
+}
+
+PC$tag2 <- ifelse(PC$price>3000,"Expensive", "Cheap") # 第一参数为测试条件,T输出第二参数,F输出第三参数
+PC
+```
+
+### 循环结构
+for语句, 次数固定
+  for(i in x){
+    ....
+  }
+
+while语句, 次数不固定,只看条件,判断为T就执行
+  while(T/F){
+    ....
+  }
+
+repeat语句, 进来就一直循环,直到遇到break,必须有
+  repeat{
+    ....
+    break
+  }
+
+break与next, break退出整个循环, next 退出本轮循环,执行下一次
+
+```{r}
+for(i in 1:5){
+  print(i^2)
+}
+
+i <- 1
+while(i<=5){ # 注意临界值, 和判定条件
+  print(i^2)
+  i <- i+1 # 注意累加
+}
+
+i <- 1
+repeat{
+  print(i^2)
+  i <- i+1 # 注意累加
+  if (i>5) break # 注意判定条件
+}
+```
+
+## 函数
+myfun <- function(par1, par2,...){
+  ....
+}
+
+R 中函数是一类对象,如同向量列表等一样可以随时创建, 而在C等中,必须提前编译后才能使用
+一类对象可以作为函数参数,也可作为返回对象
+
+查看函数源码
+不带()的函数名
+page()函数, 在编辑器中查看
+```{r}
+mean
+# page(mean) # 以文档形式打开查看
+```
+函数必须要返回值,不写return(), 会将最后一行作为返回值
+```{r}
+add <- function(x=c(1:2)){ # =定义缺省值
+  return (sum(x)) # 返回对象要加上括号
+}
+add(1:100)
+add()
+```
+```{r}
+x <- c(1,2,3,4,NA,5,6,NA)
+x
+!is.na(x) # x中不为NA的为T
+x <- x[!is.na(x)] # 取出不为NA的
+x
+```
+
+
+```{r}
+mystat <- function(x,na.omit=F){ # 默认不忽略NA值
+  if(na.omit){
+    x <- x[!is.na(x)] # 取出不为NA的
+  }
+  m <- mean(x)
+  n <- length(x)
+  s <- sd(x)
+  skew <- (sum((x-m)^3)/n)/((sum((x-m)^2)/n)^(3/2)) # 偏度,越大越偏,正负为左偏或右偏
+  kurt <- (sum((x-m)^4)/n)/((sum((x-m)^2)/n)^2)-3 # 峰度, 减3是与标准正态0比较,大于0尖峰分布,小于0扁平分布
+  return (list(mean=m, sd=s, skew=skew, kurtosis=kurt))
+}
+
+mystat(rnorm(100))
+```
+使用source()载入函数文件
+```{r}
+source("C:/Users/fanhang/Desktop/Rdata/sk_ku.r") # 载入r文件
+sk_ku(rnorm(100))
+```
+```{r}
+sk_ku # 查看函数源码
+# page(sk_ku)
+```
+
+### apply家族
+apply(), sapply(), lapply(), mapply(), tapply()
+
+apply(), 对指定的维度进行运算
+apply(x, margin, FUN)
+x为数据框, margin为指定的维度,1为行维度,2为列维度, FUN为指定的对行或列操作的函数
+```{r}
+dataTest <- data.frame(pv=rnorm(10), uv=rnorm(10), ip=runif(10))
+dataTest
+rownames(dataTest) <- paste("NO.",1:10,sep = "")
+# apply(dataTest, 1, FUN=mean) # 行维度
+apply(dataTest, 2, FUN=mean) # 列维度
+apply(dataTest, c(1,2), FUN=mean) #　对于FUN的参数，接在FUN后面
+# 查看分位数
+quantile(dataTest$pv, probs = c(.1,.6,.9))
+apply(dataTest, 2, FUN=quantile, probs = c(.1,.6,.9)) # probs指定的参数是给FUN用的
+```
+
+### 切比雪夫定理
+对于任意分布距离其均值k个标准差部分的概率为1-1/k^2
+如k=2,则据其均值2个标准差的数据概率为3/4
+$$
+1-\frac{1}{k^2}
+$$
+### 相关关系
+协方差
+Cov(X, Y) 
+= E[ (X-E[X]) * (Y-E[Y]) ]
+= E[XY] - E[X]E[Y]
+
+相关系数
+p(X, Y)
+= Cov(X, Y) / s(X)*s(Y)
+
+### 分布函数
+r 生成符合次分布的随机数
+d 依据此分布的概率密度函数进行操作
+p 依据此分布的累计密度函数进行操作
+q 依据此分布的概率密度函数进行分位点操作
+```{r}
+rnorm(10) # 默认生成均值0,方差1的标准正态分布,10个随机数
+dnorm(0) # 默认为标准正态分布,得到概率密度=0的概率
+pnorm(1.65) # 默认为标准正态分布,得到x<1.65的累计概率, 即1.65分位点的概率是95%
+qnorm(0.95) # 与q相反,根据累计概率,得到x的值,分位点, 即95%累积概率的分位点位置是1.65
+```
+
+### pretty()函数
+pretty(from, to, length)
+pretty(0,100,1000) # 从0到100,生成1000个等步长的向量
+
+```{r}
+x <- pretty(0:50,100)
+y <- dchisq(x, 5) # 概率密度分布
+z <- pchisq(x,5) # 累积概率分布
+plot(x , y, type = "l", col="red")
+plot(x , z, type = "l", col="red")
+```
+```{r}
+x <- pretty(-3:3,500)
+y <- dnorm(x)
+z <- pnorm(x)
+plot(x, y, type="l")
+plot(x, z, type="l")
+```
+
+```{r}
+x <- seq(0, 50, length.out = 100)
+y <- dchisq(x, 5)
+plot(x , y, type = "l")
+```
+
+### 单变量统计函数
+```{r}
+x <- c(-10,1:10, 100)
+mean(x)
+mean(x, trim = 0.1) # 均值, 因为均值易受极值影响,用trim去除首尾0.1部分的数值
+median(x) # 中位数
+quantile(x, probs = c(.6, .9)) # 分位数
+var(x) # 方差
+sd(x) # 标准差
+table(x) # 频数表
+```
+```{r}
+# 加权平均数
+weight <- 1:100
+x <- rnorm(100)
+weighted.mean(x,weight)
+```
+
+```{r}
+str(airquality) # 查看数据集结构
+summary(airquality)
+```
+
+几何平均数
+```{r}
+x <- c(.045, .021, .255, .019)
+xq1 <- prod(x)^(1/(length(x))) # 连乘之后开n次方根
+xq2 <- exp(mean(log(x)))
+xq1 == xq2
+```
+
+```{r}
+x <- rnorm(100,50,6)
+y <- rnorm(200,150,8)
+z <- c(x,y)
+plot(density(z)) # 密度曲线
+abline(v=mean(z), col=3, lw =3) # 添加参考线
+```
+
+### 双变量函数
+```{r}
+# 协方差
+cov(airquality[c(-5,-6)], use = 'pairwise.complete.obs') #配对删除
+cov(airquality[c(-5,-6)], use = 'complete.obs')　# 行删除
+# 相关系数
+cor(airquality[c(-5,-6)], use = 'pairwise.complete.obs') #配对删除
+cor(airquality[c(-5,-6)], use = 'complete.obs')　# 行删除
+```
+### 统计量的可视化
+
+```{r}
+# 散点图
+plot(airquality$Ozone) # 只传入一个则以索引为X轴
+plot(airquality$Ozone, airquality$Wind)
+# 箱线图
+boxplot(airquality$Temp, main="box")
+boxplot(airquality$Temp, horizontal = T) # 横向
+# 最上端距箱子长度为1.5倍的IQR, IQR为箱子的高度, 上四分位减下四分位
+# 直方图
+hist(airquality$Temp)
+hist(airquality$Temp, breaks = 30) # 30个直方
+hist(airquality$Temp, breaks = 30, prob=T) # 纵轴为比率
+lines(density(airquality$Temp), col=3, lwd=3) # 密度曲线
+
+# 密度曲线
+plot(density(airquality$Temp))
+# 柱状图,   对于分类变量使用
+barplot(table(airquality$Month))
+barplot(table(airquality$Month), horiz = T)
+# 饼图
+pie(table(airquality$Month))
+# 多变量图集
+plot(airquality[c(-5,-6)])
+pairs(airquality[c(-5,-6)])
+```
+
+### 数据的组织和整理
+#### 输入和输出
+基本输入
+输出readline(), edit(), fix()
+```{r}
+x <- readline("input something")
+```
+```{r}
+myDataFrame <- data.frame(name=character(0), age=numeric(0), height=numeric(0))
+myDataFrame <- edit(myDataFrame) # 修改后应重新赋值
+fix(myDataFrame) # 修改后立即生效
+```
+输出print(), cat()
+```{r}
+x <- rnorm(10)
+print(x, digits = 4) # 可控制精度,会显示每行首个元素的索引, 行末有换行符
+print("hello"); print("world")
+cat("hello"); cat("world", "\n") # 手动添加换行符
+cat(format(x, digits = 4), "\n") # 更紧凑, 行末自动添加换行符, 使用format进行格式调整
+cat("test message", file = "c:/users/fanhang/Desktop/test.txt") # 可将数据输出到文件
+```
+输出重定向sink()将原本输出到屏幕的数据重定向到文本中去
+```{r}
+# 输出重定向
+sink("c:/users/fanhang/Desktop/test.txt")
+cat(rnorm(100))
+sink() # 以sink标志结束
+```
+
+#### 模拟数据集与自带数据集
+模拟数据应符合特定分布
+练习线性回归
+y=ax+b+e
+x~N(0,2)
+e~N(0,1)
+a=2, b=.5
+```{r}
+set.seed(10)
+x <- rnorm(100,0,2)
+e <- rnorm(100)
+a <- 2
+b <- .5
+y <- a*x+b+e
+plot(x,y)
+```
+自带数据集
+保存在datasets中
+```{r}
+data(package="datasets")
+data(package=.packages(all.available = T)) # 查看所有可用数据集
+```
+#### 文件数据源
+```{r}
+getwd() # 获得当前工作目录
+setwd("c:/users/fanhang/Desktop/Rdata") # 设定工作目录
+x <- rnorm(10)
+y <- rnorm(10)
+z <- rnorm(10)
+save(x,y,z,file = "c:/users/fanhang/Desktop/xyz.Rdata")
+l <- load("c:/users/fanhang/Desktop/xyz.Rdata") # 含有此文件中变量的名字
+l
+```
+
+结构化的文件
+文本:
+read.table(), 默认第一行不为列名 header=F, 分隔符为空格sep=""
+允许设置注释行标志,comment.char="@"
+read.csv(), 默认第一行为列名 header=T, 分隔符为逗号sep=",", 也允许注释行
+read.delim() 可以从剪切板读取, read.delim("clipboard", header=F)
+
+write.table(x, "c:/users/fanhang/Desktop/test.txt", sep=" ")
+
+Excel:四种方法
+保存为csv文件
+剪切板+read.delim()
+xlsx扩展包
+rodbc数据源
+
+SPSS文件:自带的foreign::read.spss(), 
+library(foreign)
+cars <- read.spss("c:/users/fanhang/Desktop/car.sav")
+或安装Hmisc包
+Hmisc::spss.get()
+library(Hmisc)
+cars <- spss.get("c:/users/fanhang/Desktop/car.sav", use.value.labels = T) # 使用SPSS自带的数据标签
+
+关系型数据库mysql
+RMySQL包
+```{r}
+library(RMySQL)
+conn <- dbConnect(MySQL(), dbname = "50", username="root", password="288682", host="localhost", port=3306)
+dbListTables(conn) # 查看有哪些表
+dbListFields(conn, "course") # 查看有哪些字段
+summary(MySQL(), verbose=T) # 查看信息
+student <- dbReadTable(conn, "student")
+temp <- data.frame(s_id="09", s_name="AA", s_birth="1990-01-01", s_sex="boy")
+# dbWriteTable(conn, "student", temp, append=T)
+res <- dbGetQuery(conn, "select * from student where s_id<05") # 使用SQL语句
+res
+res <- dbSendQuery(conn, "show databases") # 向数据库发送数据库指令命令(不是SQL指令)
+dl <- fetch(res)
+dl
+dbDisconnect(conn) # 断开连接
+```
+
+ODBC方式 开放数据库连接,中继连接
+```{r}
+library(RODBC)
+conn <- odbcConnect("LocalMySQL") # 已选定"50"数据库
+sqlTables(conn) # 查看表
+student <-  sqlFetch(conn, "student")
+student
+student <- sqlQuery(conn, "select * from student where s_id<05") # 使用sql语句
+odbcClose(conn) # 断开连接
+```
+
+#### 数据操作
+##### 日期时间,字符串的处理
+数据集成
+数据转换
+
+Data日期类,只有日期,没有时间
+POSIXct 日期时间类, 精确到秒,内部用数字表示, 空间小,索引慢
+POSIXlt 日期时间类, 精确到秒,内部用列表表示, 空间大,索引快
+函数
+Sys.date(), date(), difftime(), ISOdate(), ISOdatetime()
+```{r}
+(date()) # 日期和时间
+(Sys.Date()) # 只有日期
+```
+##### 字符转日期
+```{r}
+mydate <- as.Date("2020-08-18")
+class(mydate)
+as.character(mydate)
+```
+
+as.date()支持向量化运算
+```{r}
+birDay <- c("01/05/1986", "06/05/1989")
+days <- as.Date(birDay, "%m/%d/%Y")
+days
+```
+也可使用format()格式化函数
+```{r}
+date <- Sys.Date()
+format(date, format = "%m-%d-%Y")
+```
+
+```{r}
+as.numeric(Sys.Date()) # 从1970年至今过的天数
+as.numeric(as.Date("1970-01-01"))
+```
+日期可以相减
+```{r}
+dateBir <- as.Date("1994-06-17")
+dateNow <- Sys.Date()
+dayLong <- dateNow - dateBir
+dayLong
+# 或使用diff()函数
+weekLong <- difftime(Sys.Date(), as.Date("1994-06-17"), units = "weeks")
+weekLong
+```
+年月日拼接
+```{r}
+date <- as.Date(ISOdate(2020,05,09))# POSIXct类型
+class(date)
+# 支持向量拼接
+years <- c(2019, 2020,2021)
+months <- c(05, 07, 09)
+days <- c(5,7,9)
+allDays <- as.Date(ISOdate(years,months,days))
+allDays
+```
+POSIXlt类型
+```{r}
+p <- as.POSIXlt(Sys.Date())
+p$year + 1900 # 默认为距离1900的年数
+p$mon + 1 # 默认为距离1月的月数
+p$mday
+p$hour
+p$min
+p$sec
+```
+#### 字符串
+nchar(), length() 取长度
+paste(), outer() 拼接
+substr(), strsplit() 拆分
+Sub(), gsub() 修改
+grep(), regexpr(), grepexpr() 查找
+
+cat()与print()
+cat遇到不可见字符按其本意输出
+print则直接输出
+```{r}
+a <- "hello\rwold\n"
+a
+cat(a) # 先输出hello,遇到\r回车符,移到行首,输出wold,覆盖hello
+print(a)
+nchar(a)
+```
+```{r}
+nchar(a) # 得到字符长度
+length(a) # 得到向量元素个数
+```
+拼接
+```{r}
+board <- paste("b", 1:5, sep = "-")
+board
+mm <- paste("mm", 1:3, sep = "-")
+mm
+outer(board, mm, paste, sep = ":") # 向量的外积, 笛卡尔积,默认为做乘法,此处自定义为paste函数
+```
+提取子串
+```{r}
+board
+substr(board, 3, 3) # 提取字符第3个起,第3个止的元素,全闭区间,此处为向量化操作
+```
+拆分
+```{r}
+strsplit(board, "-", fixed = T) # fixed = T 不使用正则表达式
+```
+替换修改
+```{r}
+sub("-", ".", board, fixed = T)
+sub("m", "p", mm) # 只替换第一个匹配字符
+gsub("m", "p", mm)# 替换所有匹配字符,g为全局之意
+```
+查找
+```{r}
+mm <- c(mm, "mm4")
+mm
+grep("-", mm) # 返回T或F, 对于向量,返回查到的元素的索引
+regexpr("-", mm) # 返回第一个匹配项
+gregexpr("-", mm) # 返回所有匹配项
+```
+
+### 数据预处理
+数据集成
+数据转换
+数据清洗
+数据约简
+
+#### 数据集成
+merge(), pylr::join()
+与cbind(), rbind()不同的是,
+merge()可以按字段匹配合并,相当于内连接和外连接
+```{r}
+cus <- data.frame(Id=c(1:6), state=c(rep("北京", 3), rep("上海", 3)))
+ol <- data.frame(Id=c(1,4,6,7), Pro=c("IPhone", "Mi", "Vivo", "Huawei"))
+a <- merge(cus, ol, by = ("Id")) # 内连接
+a
+b <- merge(cus, ol, by = ("Id"), all=T) # 全连接
+b
+c <- merge(cus, ol, by = ("Id"), all.x=T) # 左连接
+c
+d <- merge(cus, ol, by = ("Id"), all.y=T) # 右连接
+d
+# 对于列名相同的两个数据框, 会进行union连接, 去除重复值
+```
+
+#### 数据转换
+构造属性
+规范化,极差化,标准化
+离散化 区间化
+改善分布
+排序
+```{r}
+air <- airquality[order(airquality$Temp),]
+head(air, 5)
+```
+添加变量
+直接$新变量赋值即可
+```{r}
+quantile(air$Temp, probs=c(0,.3,.6,1))
+```
+```{r}
+air$isHot <- ifelse(air$Temp>80,T,F)
+head(air,5)
+tail(air,5)
+```
+使用within
+```{r}
+air <- within(air,{
+  feel <- NA
+  feel[Temp>=80]="Hot"
+  feel[Temp>=70&Temp<80]="Warm"
+  feel[Temp<70]="Cold"
+})
+head(air, 5)
+tail(air, 5)
+# 转为因子
+air$feel <- factor(air$feel, levels = c("Cold", "Warm", "Hot"), ordered = T)
+class(air$feel)
+```
+
+#### 数据规范化
+中心化 减均值,之后均值为0
+归一化 减均值后除以标准差
+scale(x, center=T, scale=T) 默认先中心化,再归一化
+只中心化则设scale=F
+```{r}
+test <- data.frame(center=scale(air$Temp, scale=F), scale=scale(air$Temp))
+test
+```
+连续变量化为离散型
+使用cut()
+```{r}
+air <- within(air, {tZone=cut(Temp, breaks = quantile(Temp, probs = c(0,.3,.6,.8,1)), include.lowest = T)})
+air
+```
+使用Hmisc::cut2()
+```{r}
+library(Hmisc)
+air <- within(air,{tZone2=cut2(Temp, g=4)}) # 直接分为四组
+air
+```
+### 缺失值
+#### 发现缺失值
+NA, not available缺失值
+NaN, not a number无意义值
+Inf 正无穷
+-Inf 负无穷
+
+is.na() 字段层面识别缺失值
+complete.cases() 记录层面识别缺失值
+
+VIM包, mice()包用于处理缺失值
+```{r}
+library(VIM)
+summary(sleep)
+is.na(sleep$Sleep)
+is.na(NaN) # 也是缺失值,Inf不是
+is.infinite(Inf)
+sleep$Sleep[!is.na(sleep$Sleep)]
+complete.cases(sleep) # 对sleep所有的观测, 有缺失值就返回F(不完整), 可作为行索引
+sleep[complete.cases(sleep),]
+```
+直接对布尔值加减
+```{r}
+sum(is.na(sleep$Sleep)) # 缺失值计数
+mean(is.na(sleep$Sleep)) # 缺失值均值,其实就是缺失值比例
+# 同理可用于complete.cases()
+```
+
+#### 缺失值模式
+完全随机缺失 MCAR  与其他变量和自己都没有关系, 可看作是从一个更大的样本抽样而来, 可直接删去
+
+随机缺失 MAR  和其他变量有关系, 和自己没关系,  一旦删去,可能对其他变量也有影响
+
+非随机缺失 NMAR  与其他有关,与自己也有关
+
+```{r}
+library(mice)
+library(VIM)
+md.pattern(sleep) # 字段下面,1表示无缺失值,0表示有缺失值, 第一列表示缺失模式,42行无缺失,9行这样的缺失,3行这样的缺失,等等... 最后一列表示本行有多少个缺失值, 最后一行表示本列缺失值的个数
+aggr(sleep, number=T, prop=F)
+matrixplot(sleep)
+marginplot(sleep[,c("Dream", "Sleep")])
+```
+
+#### 处理缺失值
+删除与填补
+缺失值占比少于5%, 并符合随机缺失, 即可删除
+
+大多函数都提供na.rm=T 参数直接对缺失值做删除处理
+
+行删除
+na.omit
+配对删除, 函数处理到具体的某个变量时,再删除这个缺失值
+cor(data, use = "pairwise.complete.obs")
+
+填补
+简单随机填补
+均值填补
+回归填补
+```{r}
+sub.index <- which(is.na(sleep$Sleep)==T) # 找出缺失值的索引
+sleepClean <- sleep[-sub.index,] # 取出sleep完整行
+sleepNa <- sleep[sub.index, ] # 取出sleep缺失行
+# 从sleepClean随机抽样放到sleepNa
+sleepNa$Sleep <- sample(sleepClean$Sleep, nrow(sleepNa), replace = T) # 从sleepClean$Sleep中可放回的抽nrow(sleepNa)个数据
+sleepNa
+# 均值填补
+sleepNa$Sleep <- mean(sleepClean$Sleep)
+sleepNa
+# 回归填充
+sleeplm <- lm(Sleep~Gest+Exp, data = sleep) # 从原始数据得到回归模型
+# 使用Gest+Exp两个变量因为其相关系数较高
+cor(sleep, use = "pairwise.complete.obs")
+library(corrgram)
+corrgram(cor(sleep, use = "pairwise.complete.obs"), lower.panel = panel.conf, upper.panel = panel.pie)
+# sleep相关最强的的有NonD和Dream, 但sleep缺失时NonD也缺失,不可用故用Exp
+sleepNa$Sleep <- round(predict(sleeplm, sleepNa), 2) # 使用predict(), 在sleepNa数据中用上面的回归模型进行预测,并填补
+sleepNa
+```
+
+
+```{python engine.path="C:/Program Files/Python/Python38/python.exe"}
+print("hello")
+a=3
+b=4
+a,b=b,a
+a
+b
+```
+
+
+
+
+
+

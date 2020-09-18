@@ -1,0 +1,703 @@
+# 文件的读写
+write.table()
+read.table()
+write.table函数语法：
+
+write.table (x, file ="", sep ="", row.names =TRUE, col.names =TRUE, quote =TRUE)
+
+参数说明：
+x：需要导出的数据
+file：导出的文件路径
+sep：分隔符，默认为空格（” “），也就是以空格为分割列
+row.names：是否导出行序号，默认为TRUE，也就是导出行序号
+col.names：是否导出列名，默认为TRUE，也就是导出列名
+quote：字符串是否使用引号表示，默认为TRUE，也就是使用引号表示
+
+read.table("/home/slave/test.txt",header=T,na.strings = c("NA"))
+
+
+# 二、基本方法
+
+## 基本图形
+
+### 条形图 barplot()
+使用vcd包中的Arthritis数据,类风湿性关节炎新疗法
+```{r}
+library(vcd)
+arthData <- table(Arthritis$Improved) # table函数用于提取个单元的计数
+arthData
+```
+```{r}
+barplot(arthData, main = "BarPlot", xlab = "Improvement", ylab = "Frequency", horiz = T) # horiz为T是横向作图,默认为F
+```
+
+对于因子类型,可以用plot函数直接绘制垂直条形图,而不需使用table对其表格化
+```{r}
+plot(Arthritis$Improved, main = "BarPlot", xlab = "Improvement", ylab = "Frequency", horiz = T)
+```
+对其条形图与分组条形图
+
+若barplot()的对象是矩阵,会对其每一列为分组绘制条形图,其中beside参数为F(默认):每列值堆砌,T:每列值并列
+```{r}
+barData <- table(Arthritis$Improved, Arthritis$Treatment) # 将Improved和Treatment合并为一个table
+barplot(barData, main = "Barplot", xlab="Treatment", ylab = "Frequency", col = c("red", "yellow","blue"), legend.text = rownames(barData),beside = F, )
+barplot(barData, main = "Barplot", xlab="Treatment", ylab = "Frequency", col = c("red", "yellow","blue"), legend.text = rownames(barData),beside = T)
+```
+```{r}
+states <- data.frame(state.region, state.x77)
+means <- aggregate(states$Illiteracy, by=list(state.region), FUN = mean) # 数据折叠
+means <- means[order(means$x),]
+barplot(means$x, names.arg = means$Group.1, cex.names = 0.5, col = c("red", "blue", "yellow", "green"), legend = means$Group.1) # names.arg使用文字向量为直方标签命名, cex.names = 0.5调整字号
+title("Mean Of Illiteracy Rate")
+```
+
+means <- aggregate(states$Illiteracy, by=list(state.region), FUN = mean) # 数据折叠
+按by=list(),的列表进行折叠,例如FUN为mean,即是将state.region相同的项目求均值,以达到折叠的目的
+
+棘状图
+对堆砌图进行缩放处理,高度均为1,内部块为其比例
+```{r}
+library(vcd)
+attach(Arthritis)
+counts <- table(Treatment, Improved)
+spine(counts)
+detach(Arthritis)
+```
+
+### 饼图
+```{r}
+opar <- par(no.readonly = T)
+par(mfrow=c(2,2))
+slices <- c(10, 12, 4, 16, 8)
+lbls <- c("US", "UK", "AU", "GE", "FR")
+pct <- (slices/sum(slices)) * 100
+lbls2 <- paste(lbls, " ", pct, "%", sep = "")
+pie(slices, labels = lbls, main = "Pie Chart")
+pie(slices, labels = lbls2, main = "Pie2", col = rainbow(length(slices)))
+library(plotrix)
+pie3D(slices, labels = lbls, main = "Pie3D", explode=.8,col = rainbow(length(slices)))
+mytable <- table(state.region)
+lbls3 <- paste(names(mytable),"\n", mytable)
+pie(mytable, labels = lbls3, main = "Pie4")
+par(opar)
+```
+
+### 扇形图
+```{r}
+library(plotrix)
+slices <- c(10, 12, 4, 16, 8)
+lbls <- c("US", "UK", "AU", "GE", "FR")
+fan.plot(slices, labels = lbls, main = "Fan Plot")
+```
+
+### 直方图
+hist(x)
+
+数据中重复的值成为结
+打散结,将重复的值加上一个很小的随机数
+```{r}
+# rug(jitter(mtcars$mpg, amount = .01)) # 加上±amount之间的随机分布的数
+```
+
+break参数指定直方的数量
+frep=T/F 默认为T,按照频次绘制,F按照概率密度绘制
+
+```{r}
+hist(mtcars$mpg, breaks = 12, col = "red", xlab = "MPG", main = "Hist")
+hist(mtcars$mpg, freq=FALSE, breaks = 12, col = "blue", xlab = "MPG", main = "Hist") 
+rug(jitter(mtcars$mpg))
+lines(density(mtcars$mpg), col = "red", lwd = 3) # 加入密度曲线
+```
+
+```{r}
+x <- mtcars$mpg
+h <- hist(x, breaks = 12, col = "red", xlab = "MPG", main = "Hist")
+xfit <- seq(min(x), max(x), length=40) # 从x最小到x最大均分40段
+yfit <- dnorm(xfit, mean = mean(x), sd = sd(x)) # xfit对应的正态分布的概率密度
+yfit <- yfit*(diff(h$mids[1:2])*length(x)) # 概率密度乘以(直方的样本量)
+lines(xfit, yfit)
+```
+
+### 核密度图
+density()
+
+```{r}
+den <- density(mtcars$mpg)
+plot(den, main = "Density Plot")
+```
+```{r}
+den <- density(mtcars$mpg)
+plot(den, main = "Density Plot")
+polygon(den, col = "red", border = "blue") #按照顶点的XY坐标绘制多边形
+rug(mtcars$mpg, col = "brown") # 添加轴须图
+```
+
+使用sm包比较核密度
+sm.density.compare(x, 因子分组变量)
+x为数值变量,根据因子分组变量进行比较
+
+```{r}
+library(sm)
+attach(mtcars)
+cyl.f <- factor(cyl, levels = c(4,6,8), labels = c("4 cylinder", "6 cylinder", "8 cylinder"))
+sm.density.compare(mpg, cyl, xlab="MPG")
+title("Compare")
+colfill <- c(2:(1+length(levels(cyl.f))))
+# legend(locator(1), levels(cyl.f), fill = colfill)
+detach(mtcars)
+```
+
+### 箱线图
+
+±1.5个四分位距之外的值为离群点
+
+```{r}
+boxplot(mtcars$mpg)
+boxplot.stats(mtcars$mpg)
+```
+
+### 并列箱线图
+
+boxplot(formula, data = dataframe)
+dataframe为提供数据的数据框
+formula
+如y~A, 将类别型变量A的每个值并列的生成数值型变量y的箱线图
+如y~A*B, 将类别型变量A和B的所有水平两两组合生成数值型变量y的箱线图
+varwidth=T参数使箱子的宽度与样本数量的平方根成正比
+
+```{r}
+boxplot(mpg~cyl, data = mtcars, main="BoxPlot", xlab = "Num Of Cyl", ylab = "MPG",varwidth=T)
+```
+
+```{r}
+boxplot(mpg~cyl, data = mtcars, notch=T, main="BoxPlot", xlab = "Num Of Cyl", ylab = "MPG",varwidth=T)
+```
+
+交叉因子箱线图
+
+创建两个因子向量,交叉后与mpg绘制箱线图
+```{r}
+mtData <- mtcars
+mtData$cyl.f <- factor(mtData$cyl, levels = c(4,6,8), labels = c("4", "6", "8"))
+mtData$am.f <- factor(mtData$am, levels = c(0,1), labels = c("auto", "standard"))
+boxplot(mpg~am.f*cyl.f, data = mtData, varwidth = T, main = "BoxPlot", xlab = "Auto Type")
+```
+### 小提琴图
+
+箱线图与核密度图的 结合
+vioplot(x1, x2, x3,...., names="", col = "")
+将为每个变量绘制一个小提琴图
+
+```{r}
+library(vioplot)
+x1 <- mtcars$mpg[mtcars$cyl == 4]
+x2 <- mtcars$mpg[mtcars$cyl == 6]
+x3 <- mtcars$mpg[mtcars$cyl == 8]
+vioplot(x1, x2, x3, names = c("4 cyl", "6 cyl", "8 cyl"), col = "gold")
+```
+
+### 点图
+
+dotchart(x, labels=)
+x为数值型变量, labels为个点的标签
+还可添加groups参数选定一个因子给点分组,如此还可以用gcolor指定各组的颜色
+cex参数指定标签大小
+```{r}
+dotchart(mtcars$mpg, labels = rownames(mtcars), cex = .6, main = "DotChart", xlab = "MPG")
+```
+将点图进行排序
+```{r}
+x <- mtcars[order(mtcars$mpg),]
+x$cyl <- factor(x$cyl)
+x$color[x$cyl == 4] <- "red"
+x$color[x$cyl == 6] <- "darkgreen"
+x$color[x$cyl == 8] <- "blue"
+dotchart(x$mpg, labels = rownames(x), groups = x$cyl, gcolor = "black", pch = 19, color = x$color, main = "Dot", xlab = "MPG", cex = .7)
+```
+
+## 基本统计分析
+
+提取研究数据
+```{r}
+dataName <- c("mpg", "hp", "wt")
+summary(mtcars[dataName])
+```
+
+### 计算峰度偏度
+```{r}
+#计算偏度峰度
+myfun <- function(x,na.omit=F){
+  if(na.omit)
+    x <- x[!is.na(x)]
+  m <- mean(x)
+  n <- length(x)
+  skew <- (sum((x-m)^3)/n)/((sum((x-m)^2)/n)^(3/2))
+  kurt <- (sum((x-m)^4)/n)/((sum((x-m)^2)/n)^2)-3
+  return(c(n=n,mean=m,skew=skew,kurtosis=kurt))
+}
+sapply(mtcars[dataName], myfun)
+```
+
+Hmisc, pastecs, psych包
+```{r}
+library(Hmisc)
+describe(mtcars[dataName])
+```
+
+```{r}
+library(pastecs)
+stat.desc(mtcars[dataName], norm = T)
+```
+
+```{r}
+library(psych)
+describe(mtcars[dataName])
+Hmisc::describe(mtcars[dataName]) # 用::来指明用的是那个包里的describe
+```
+
+### 分组计算描述性统计量
+
+aggregate()函数
+by = list(am=mtcars$am) 指定了分组的标签名,不指定的话是Group.1
+
+```{r}
+aggregate(mtcars[dataName], by = list(am=mtcars$am), mean)
+```
+但aggregate函数只能处理mean等但返回值的函数
+使用by,处理多返回值的函数
+```{r}
+doFun <- function(x)(c(mean=mean(x), sd=sd(x)))
+# by(mtcars[dataName], mtcars$am, doFun)
+```
+
+```{r}
+# library(doBy)
+# summaryBy(mpg+hp+wt~am, data=mtcars, mean)
+```
+
+### 频数表与列联表
+
+|函数|含义|
+|:---:|:---:|
+|table(v1, v2, v3,...)|根据一个或多个因子变量创建N维列联表|
+|xtabs(formula, data)|根据一个公式和数据框创建N维列联表|
+|prop.table(table, margins)|根据margins定义的边际列表,将table条目表示为分数|
+|margin.table(table, margins)|根据margins定义的边际列表,计算条目和|
+|addmargins(table, margins)|将概述边放入表中|
+|ftable(table)|创建一个紧凑的平铺列联表|
+
+一维列联表
+table()简单频数统计表
+```{r}
+library(vcd)
+mytable <- with(Arthritis, table(Improved))
+mytable
+```
+
+prop.table()将数值转为比例
+```{r}
+prop.table((mytable))*100
+```
+
+二维列联表
+```{r}
+library(vcd)
+mytable <- with(Arthritis, table(Improved, Treatment))
+mytable
+```
+
+使用xtabs()
+若某个变量写在~左边,则其作为一个频数变量,在数据已被表格化是很管用
+
+```{r}
+mytable2 <- xtabs(~Improved+Treatment, data = Arthritis)
+mytable2
+```
+使用margin.table()和prop.table()生成边际频数和比例
+下表1表示mytable的第一个变量
+```{r}
+margin.table(mytable, 1) # 按行
+margin.table(mytable, 2) # 按列
+```
+计算行比例
+```{r}
+prop.table(mytable, 1) # 按行
+prop.table(mytable, 2) # 按列
+```
+计算个单元格所占比例
+```{r}
+prop.table(mytable)
+```
+
+添加边际和
+```{r}
+addmargins(mytable) # 也可指定仅添加行或列
+addmargins(prop.table(mytable))
+```
+
+table()默认忽略缺失值,使用useNA = "ifany"阻止
+
+使用gmodels包生成列联表
+```{r}
+library(gmodels)
+library(vcd)
+with(Arthritis, CrossTable(Treatment, Improved))
+```
+
+### 多维列联表
+
+table(), xtabs(), prop.table(), addmargins()都可以自然的推广到高维
+
+```{r}
+library(vcd)
+mytable3 <- xtabs(~Treatment+Sex+Improved,data = Arthritis)
+mytable3
+```
+ftable生成紧凑型多维列联表
+```{r}
+ftable(mytable3)
+```
+
+添加边际频数
+```{r}
+margin.table(mytable3,1)
+margin.table(mytable3,2)
+margin.table(mytable3,3)
+```
+添加复合因素的边际频数
+```{r}
+margin.table(mytable3,c(1,3))
+ftable(addmargins(prop.table(mytable3, c(1,2))))
+```
+
+###独立性检验
+
+卡方独立性检验
+fieher精确检验
+cochran-mantel - haenszel检验
+
+
+####卡方检验
+chisq.test()
+```{r}
+library(vcd)
+mytableChi <- xtabs(~Treatment+Improved, data=Arthritis)
+mytableChi2 <- xtabs(~Improved+Sex, data=Arthritis)
+chisq.test(mytableChi)
+chisq.test(mytableChi2)
+```
+
+#### Fisher精确检验
+
+fisher.test()
+原假设为,边界固定的列联表的行与列是相互独立的
+
+可以检测任何行数列数大于2的二维列联表,但不可检测2X2的表
+```{r}
+library(vcd)
+mytableFish <- xtabs(~Treatment+Improved, data=Arthritis)
+mytableFish2 <- xtabs(~Improved+Sex, data=Arthritis)
+fisher.test(mytableFish)
+fisher.test(mytableFish2)
+```
+
+#### Cochran-Mantel - Haenszel检验
+
+mantelhaen.test()
+
+原假设为,两个名义变量在第三个变量的每一层中都是条件独立的
+
+检验治疗情况和改善情况在性别的每个水平都是独立的
+
+```{r}
+library(vcd)
+mytableMantel <- xtabs(~Treatment+Improved+Sex, data=Arthritis)
+mantelhaen.test(mytableMantel)
+```
+
+### 相关性的度量
+
+当变量不独立,那其相关度是多少?如何度量??
+
+使用vcd包的assocstats()函数
+计算二维列联表的phi相关系数, 列联系数, Cramer's V系数
+
+```{r}
+library(vcd)
+mytableAssoc <- xtabs(~Treatment+Improved, data=Arthritis)
+chisq.test(mytableAssoc)
+assocstats(mytableAssoc)
+```
+
+### 展开列联表
+
+现已有列联表,自定义table2flat()函数
+
+```{r}
+table2flat <- function(mytable){
+  df <- as.data.frame(mytable)
+  rows <- dim(df)[1]
+  cols <- dim(df)[2]
+  x <- NULL
+  for(i in 1:rows){
+    for(j in 1:df$Freq[i]){
+      row <- df[i, c(1:cols-1)]
+      x <- rbind(x, row)
+    }
+  }
+  row.names(x) <- c(1:dim(x)[1])
+  return(x)
+}
+
+mytable
+x <- table2flat(mytable)
+```
+
+
+```{r}
+plot(mtcars)
+```
+
+
+```{r}
+library(multcomp)
+attach(cholesterol)
+table(trt)
+aggregate(response, by = list(trt), FUN = mean)
+aggregate(response, by=list(trt), FUN = sd)
+fit <- aov(response~trt)
+summary(fit)
+library(gplots)
+plotmeans(response~trt)
+detach(cholesterol)
+```
+
+
+对各组均值差异的成对比较
+par(las=1) 旋转轴标签
+```{r}
+TukeyHSD(fit)
+opar <- par()
+par(las=1)
+par(mar=c(5,8,4,2))
+plot(TukeyHSD(fit))
+par(opar)
+```
+
+multcomp包的glht()提供对多重均值比较更全面的方法
+
+```{r}
+library(multcomp)
+opar <- par()
+par(mar=c(5,4,6,2))
+tuk <- glht(fit, linfct=mcp(trt="Tukey"))
+plot(cld(tuk, level=.5), col="lightgrey")
+par(opar)
+```
+
+## 中级绘图
+###散点图
+
+```{r}
+attach(mtcars)
+plot(wt,mpg,main = "MPG vs WT",xlab = "wt",ylab = "MPG")
+abline(lm(mpg~wt), col="red", lty=1, lwd=2) # 最佳拟合线性直线
+lines(lowess(wt,mpg), col="blue", lty=2,lwd=2) # 平滑拟合曲线
+
+library(car)
+scatterplot(mpg~wt | cyl, data=mtcars, lwd=2, legend.plot=T, boxplots = "xy") # | cyl,以cyl为条件分组绘图
+detach(mtcars)
+```
+
+#### 散点矩阵图
+
+```{r}
+pairs(~mpg+wt+disp+drat, data=mtcars,main="Plot Matrix", upper.panel=NULL)
+
+library(car)
+scatterplotMatrix(~mpg+wt+disp+drat, data=mtcars, main="Plot Matrix")
+scatterplotMatrix(~mpg+wt+disp+drat | cyl, data=mtcars, diagonal="histogram", main="Plot Matrix")
+```
+
+根据变量相关性绘图
+变量离对角线越近,相关性越高
+```{r}
+cor(mtcars[c("mpg", "wt", "disp", "drat")])
+library(gclus)
+mydata <- mtcars[c(1,3,5,6)]
+mydata.corr <- abs(cor(mydata))
+mydata.color <- dmat.color(mydata.corr) # 给定对称矩阵,返回颜色矩阵
+myorder <- order.single(mydata.corr)
+cpairs(mydata, myorder, panel.colors=mydata.color, gap=.5, main="By Corr")
+```
+
+#### 高密度散点图
+数据点严重重叠时
+```{r}
+set.seed(1234)
+n <- 10000
+c1 <- matrix(rnorm(n, mean=0,sd = .5), ncol=2)
+c2 <- matrix(rnorm(n, mean=3, sd=2),ncol=2)
+mydata <- rbind(c1,c2)
+mydata <- as.data.frame(mydata)
+names(mydata) <- c("x", "y")
+with(mydata, plot(x,y, main="10000 Plot")) # 严重重叠
+# 可使用封箱,颜色,透明的来处理
+with(mydata,smoothScatter(x,y,main="10000")) # 利用光平滑度
+# 使用hexbin()函数
+library(hexbin)
+with(mydata, {
+  xbin <- hexbin(x,y,xbins=100) # xbins=100每个格子含的点数
+  plot(xbin,main="xbin")
+  })
+# 使用IDmisc包的iplot()函数
+library(IDPmisc)
+with(mydata, iplot(x,y,main="IDmisc")) # 以颜色显示点密度
+```
+
+#### 三维散点图
+```{r}
+library(scatterplot3d)
+attach(mtcars)
+scatterplot3d(wt, disp, mpg, type="h", highlight.3d=T, main="3D Plot") # 显示纵线
+# 添加回归面
+s3d <- scatterplot3d(wt, disp, mpg, type="h", highlight.3d=T, main="3D Plot")
+fit <- lm(mpg~wt+disp)
+s3d$plane3d(fit)
+detach(mtcars)
+```
+
+用rgl包的plot3d()创建可交互3d散点图
+```{r}
+library(rgl)
+attach(mtcars)
+plot3d(wt,disp,mpg,col="red", size=5)
+detach(mtcars)
+```
+
+使用Rcmdr包的scatter3d(),可添加回归曲面
+```{r}
+library(Rcmdr)
+attach(mtcars)
+scatter3d(wt,disp,mpg)
+detach(mtcars)
+```
+
+#### 气泡图
+先建立一个二维散点图,以气泡大小表示第三个变量
+```{r}
+attach(mtcars)
+symbols(wt, mpg, circles = sqrt(disp/pi), fg="white", bg="lightblue",inches = .3)
+text(wt, mpg, rownames(mtcars), cex=.6)
+detach(mtcars)
+```
+
+### 折线图
+
+```{r}
+opar <- par(no.readonly = T)
+par(mfrow=c(1,2))
+t1 <- subset(Orange, Tree==1)
+plot(t1$age, t1$circumference,main="Orange")
+plot(t1$age, t1$circumference,main="Orange2", type="b")
+par(opar)
+```
+
+```{r}
+plot(x,y,type="")
+lines(x,y,type="")
+```
+都可以用于绘制折线图,其中type有以下参数
+|类型|含义|
+|:---:|:---:|
+|p|只有点|
+|l|只有线|
+|o|实心点和线,即点覆盖在线上|
+|b, c|线连接点,c时不绘制点|
+|s, S|阶梯线|
+|h|直方图式的垂直线|
+|n|不生成任何点和线,一般用于为之后的命令创建坐标轴|
+
+```{r}
+x <- c(1:10)
+y <- c(1:10)
+plot(x,y,type="p",main="p,只有点")
+plot(x,y,type="l",main="l,只有线")
+plot(x,y,type="o",main="o,实心点和线,即点覆盖在线上")
+plot(x,y,type="b",main="b.线连接点")
+plot(x,y,type="c",main="c,线连接点,c时不绘制点")
+plot(x,y,type="s",main="s,阶梯线1")
+plot(x,y,type="S",main="S,阶梯线2")
+plot(x,y,type="h",main="h,直方图式的垂直线")
+plot(x,y,type="n",main="n,不生成任何点和线,为之后创建坐标轴")
+```
+
+注意,plot()会生成一个新图进行绘制,而lines则不生成新图,在现有的图上进行绘制,故
+
+一般用plot(x,y,type="n", main=".....")先生成坐标系,再用lines在图上绘制
+
+```{r}
+orange <- Orange
+orange$Tree <- as.numeric(orange$Tree)
+ntrees <- max(orange$Tree)
+xrange <- range(orange$age)
+yrange <- range(orange$circumference)
+plot(xrange, yrange, type="n", xlab="Age Days", ylab="Circumference") # 创建空坐标轴
+
+colors <- rainbow(ntrees)
+linetype <- c(1:ntrees)
+plotchar <- seq(18,18+ntrees,1)
+
+for(i in linetype){
+  tree <- subset(orange, Tree==i)
+  lines(tree$age, tree$circumference, type="b", lwd=2, lty=linetype[i], col=colors[i], pch=plotchar[i])
+}
+
+title("Tree Growth", "Example of line plot") # 主标题与副标题
+
+legend(xrange[1], yrange[2], 1:ntrees, cex=.8, col=colors, lty=linetype, title="Tree")
+```
+
+### 相关图
+对相关系数作图
+查看相关系数
+```{r}
+options(digits = 2)
+cor(mtcars)
+```
+
+此关系矩阵很不方便用于说明问题
+
+使用corrgram包的corrgram()函数
+```{r}
+library(corrgram)
+corrgram(mtcars, order=T, lower.panel=panel.shade, upper.panel=panel.pie, text.panel=panel.txt, main="Corrgram")
+```
+下三角中,斜线从左下指向右上为正相关, 色彩越深饱和度越高,越相关,接近0的色彩基本无色,本图使用了主成分法对行列重新排序
+
+上三角同样,顺时针为正相关
+
+corrgram格式为
+corrgram(x, order= T/F, panel=  , text.panel=  , diag.panel=  ,)
+order=T时,将使用主成分法对变量重新排序,使二元变量关系模型更为明显
+panel选项用于彻底非主对角线上下方元素的类型,分为lower.panel=panel.shade, upper.panel=panel.pie
+text.panel和diag.panel选项控制主对角线元素类型
+panel值如下
+|位置|面板选项|描述|
+|主对角线|panel.pie||
+||panel.shade||
+||panel.ellipse||
+||panel.pts||
+|主对角线|panel.minmax||
+||panel.txt||
+
+
+
+
+
+
+
+
+
+
+
