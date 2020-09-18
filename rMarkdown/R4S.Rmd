@@ -575,7 +575,7 @@ str_view(win, "(?<!95|98|NT|2000)Windows")
 ```
 ```{r}
 tb <- tibble(x = c("I我", "love爱", "you你"))
-tb %>% extract(x, c("en", "zh"), "([a-zA-Z]+)([^a-zA-Z]+)", remove=F)
+tb %>% tidyr::extract(x, c("en", "zh"), "([a-zA-Z]+)([^a-zA-Z]+)", remove=F)
 ```
 
 
@@ -583,7 +583,7 @@ Extract a character column into multiple columns using regular expression groups
 ```{r}
 df <- data.frame(x = c(NA, "a-b", "a-d", "b-c", "d-e"))
 df %>% extract(x, "A")
-df %>% extract(x, c("A", "B"), "([[:alnum:]]+)-([[:alnum:]]+)")
+df %>% tidyr::extract(x, c("A", "B"), "([[:alnum:]]+)-([[:alnum:]]+)")
 ```
 
 
@@ -2797,7 +2797,7 @@ tibble(
   geom_point()
 ```
 
-## 蒙特卡洛模拟估计π
+## 蒙特卡洛模拟估计圆周率
 ```{r}
 # set.seed(2019)
 n=1000
@@ -3919,7 +3919,7 @@ nobel %>% ggplot(aes(x=prize_age, fill=category))+geom_density()+facet_wrap(~cat
 ```
 group_by, group_map
 ```{r}
-nobel_winners %>%
+nobel %>%
   group_by(category) %>%
   group_map(
     ~ ggplot(data = .x, aes(x = prize_age)) +
@@ -3928,7 +3928,7 @@ nobel_winners %>%
   )
 ```
 ```{r}
-nobel_winners %>%
+nobel %>%
   dplyr::filter(laureate_type == "individual") %>%
   # mutate(decade = glue::glue("{round(prize_year - 1, -1)}s")) %>%
   count(decade, category, gender) %>%
@@ -4047,7 +4047,5 @@ d1 %>%
   geom_point()
 ```
 
-```{r}
-d1$country_region
-```
+
 
