@@ -13,13 +13,13 @@ data(package = 'palmerpenguins')
 
 |variable          |class   |description
 |:---:             |:---:   |:--:
-|species           |integer |企鹅种类(Adelie, Gentoo, Chinstrap)
-|island            |integer |所在岛屿(Biscoe, Dream, Torgersen)
+|species           |factor  |企鹅种类(Adelie, Gentoo, Chinstrap)
+|island            |factor  |所在岛屿(Biscoe, Dream, Torgersen)
 |bill_length_mm    |double  |嘴峰长度(单位毫米)
 |bill_depth_mm     |double  |嘴峰深度(单位毫米)
 |flipper_length_mm |integer |鰭肢长度(单位毫米)
 |body_mass_g       |integer |体重 (单位克)
-|sex               |integer |性别
+|sex               |factor  |性别
 |year              |integer |记录年份
 
 # 预测结果

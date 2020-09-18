@@ -22,13 +22,13 @@ trainData=training(split)
 testData=testing(split)
 
 # 逻辑回归模型
-model_logistic <- parsnip::logistic_reg() %>% # 建立并拟合逻辑回归模型
+model_logistic <- parsnip::logistic_reg() %>% # 建立模型并按训练集进行拟合
   set_engine("glm") %>% 
   set_mode("classification") %>% 
   fit(species~bill_length_mm+bill_depth_mm, data=trainData)
 
-result_log <- bind_cols(
-predict(model_logistic, new_data = testData, type = "class"),
+result_log <- bind_cols( # 使用模型对测试集预测
+# predict(model_logistic, new_data = testData, type = "class"),
 predict(model_logistic, new_data = testData, type = "prob"),
 testData) %>% 
   count(.pred_class, species) %>%
