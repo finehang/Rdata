@@ -32,7 +32,7 @@ species island bill_length_mm bill_depth_mm flipper_length_mm body_mass_g    sex
 1       0      0        0.00581       0.00581           0.00581     0.00581 0.0320     0
 ```
 
-余下数据缺失值占比较小, 均不超过0.5%, 故直接删去
+余下数据缺失值占比较小, 均不超过0.6%, 故直接删去
 
 ```{r}
 species island bill_length_mm bill_depth_mm flipper_length_mm body_mass_g  year
