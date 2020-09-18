@@ -1,4 +1,11 @@
-# 目的
+# Note:
+
+penguins_classification.R 为企鹅种类预测代码
+monte_carlo_method.R 为蒙特卡罗方法预测圆周率代码
+
+-------
+
+# 模型目的
 
 根据企鹅数据集中企鹅吻的长度和深度进行建模来预测企鹅种类
 
@@ -11,7 +18,7 @@
 
 ```{r}
 install.packages("palmerpenguins")
-data(package = 'palmerpenguins')
+library(palmerpenguins)
 ```
 
 # 字段含义
