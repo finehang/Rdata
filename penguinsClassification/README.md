@@ -1,3 +1,7 @@
+# 目的
+
+根据企鹅数据集中企鹅吻的长度和深度进行建模来预测企鹅种类
+
 # 数据来源
 
 数据操作基于tidyverse  
@@ -25,14 +29,14 @@ data(package = 'palmerpenguins')
 
 # 数据清洗
 
-性别缺失值较多, 且本例不需性别字段, 直接删去字段
+性别缺失值较多, 且本例不需性别字段, 直接删去此字段
 ```{r}
 species island bill_length_mm bill_depth_mm flipper_length_mm body_mass_g    sex  year
     <dbl>  <dbl>          <dbl>         <dbl>             <dbl>       <dbl>  <dbl> <dbl>
 1       0      0        0.00581       0.00581           0.00581     0.00581 0.0320     0
 ```
 
-余下数据缺失值占比较小, 均不超过0.6%, 故直接删去
+余下数据缺失值占比较小, 均不超过0.6%, 故直接删去缺失的观测
 
 ```{r}
 species island bill_length_mm bill_depth_mm flipper_length_mm body_mass_g  year
